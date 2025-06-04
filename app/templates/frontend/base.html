@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  {% include "/frontend/head.html" %}
+  <body class="flex flex-col min-h-screen bg-gradient-to-b from-white to-gray-100 dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-gray-100 font-sans">
+
+    {% include "/frontend/header.html" %}
+    {% include "/frontend/navbar.html" %}
+    {% include "/frontend/sidebar.html" %}
+    
+    <main class="flex-grow pt-20 px-4 lg:pl-64 xl:pl-72 transition-all duration-300 w-full">
+      <div class="flex flex-col lg:flex-row lg:space-x-8">
+        <!-- Main content -->
+        <div class="flex-1 min-w-0">
+          {% block content %}{% endblock %}
+        </div>
+    
+        <!-- Vertical ad, only visible on large screens -->
+        <aside class="pt-4 hidden lg:block w-48 sticky top-28 self-start">
+          <div class="space-y-6">
+            <div class="bg-gray-300 dark:bg-gray-700 h-48 flex items-center justify-center text-gray-700 dark:text-gray-300 font-semibold text-center px-2">
+              Ad Placeholder 1<br>(192x192)
+            </div>
+            <div class="bg-gray-300 dark:bg-gray-700 h-48 flex items-center justify-center text-gray-700 dark:text-gray-300 font-semibold text-center px-2">
+              Ad Placeholder 2<br>(192x192)
+            </div>
+            <div class="bg-gray-300 dark:bg-gray-700 h-48 flex items-center justify-center text-gray-700 dark:text-gray-300 font-semibold text-center px-2">
+              Ad Placeholder 3<br>(192x192)
+            </div>
+          </div>
+        </aside>
+        
+      </div>
+    </main>
+
+    {% include "/frontend/newsletter.html" %}
+    {% include "footer.html" %}
+  
+    <script>
+      function toggleMenu() {
+        const menu = document.getElementById("mobile-menu");
+        menu.classList.toggle("hidden");
+      }
+    
+      function toggleMobileSearch() {
+        const overlay = document.getElementById("mobileSearchOverlay");
+        overlay.classList.toggle("hidden");
+      }
+    
+      function toggleDarkMode() {
+        const html = document.documentElement;
+        html.classList.toggle("dark");
+      }
+    </script>
+    
+  </body>
+</html>

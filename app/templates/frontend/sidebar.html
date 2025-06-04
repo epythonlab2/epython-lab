@@ -1,0 +1,137 @@
+<!-- Sidebar -->
+<aside id="sidebar" class="fixed top-16 left-0 w-64 h-[calc(100vh-4rem)] bg-gray-100 dark:bg-gray-900 p-4 shadow-inner transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out overflow-y-auto z-40" style="scrollbar-width: thin;">
+    <h2 class="text-2xl font-extrabold mb-6 text-gray-800 dark:text-gray-100 tracking-wide">Python Tutorial</h2>
+    <ul class="space-y-4 pl-4 text-gray-700 dark:text-gray-300">
+        <li>
+            <a href="/python/" class="block font-semibold hover:text-green-600 hover:underline" onclick="closeSidebar()">Introduction</a>
+        </li>
+        <!-- Basics -->
+        <li>
+            <button onclick="toggleSubtopics('basics-sub', 'arrow-basics')" class="w-full text-left font-semibold hover:text-green-600 flex justify-between items-center focus:outline-none">
+                Basics
+                <span id="arrow-basics" class="inline-block transition-transform duration-300 text-green-600" aria-hidden="true">&#9656;</span>
+            </button>
+            <ul id="basics-sub" class="pl-5 mt-2 space-y-2 max-h-0 overflow-hidden transition-all duration-300 ease-in-out text-sm">
+                <li>
+                    <a href="#" class="block hover:text-green-600 hover:underline" onclick="closeSidebar()">Syntax</a>
+                </li>
+                <li>
+                    <a href="#" class="block hover:text-green-600 hover:underline" onclick="closeSidebar()">Variables</a>
+                </li>
+                <li>
+                    <a href="#" class="block hover:text-green-600 hover:underline" onclick="closeSidebar()">Data Types</a>
+                </li>
+            </ul>
+        </li>
+        <!-- Control Flow -->
+        <li>
+            <button onclick="toggleSubtopics('control-sub', 'arrow-control')" class="w-full text-left font-semibold hover:text-green-600 flex justify-between items-center focus:outline-none">
+                Control Flow
+                <span id="arrow-control" class="inline-block transition-transform duration-300 text-green-600" aria-hidden="true">&#9656;</span>
+            </button>
+            <ul id="control-sub" class="pl-5 mt-2 space-y-2 max-h-0 overflow-hidden transition-all duration-300 ease-in-out text-sm">
+                <li>
+                    <a href="#" class="block hover:text-green-600 hover:underline" onclick="closeSidebar()">If Statements</a>
+                </li>
+                <li>
+                    <a href="#" class="block hover:text-green-600 hover:underline" onclick="closeSidebar()">Loops</a>
+                </li>
+            </ul>
+        </li>
+        <!-- Others -->
+        <li>
+            <a href="#" class="block font-semibold hover:text-green-600 hover:underline" onclick="closeSidebar()">Functions</a>
+        </li>
+        <li>
+            <a href="#" class="block font-semibold hover:text-green-600 hover:underline" onclick="closeSidebar()">Modules</a>
+        </li>
+        <li>
+            <a href="#" class="block font-semibold hover:text-green-600 hover:underline" onclick="closeSidebar()">Functions</a>
+        </li>
+        <li>
+            <a href="#" class="block font-semibold hover:text-green-600 hover:underline" onclick="closeSidebar()">Modules</a>
+        </li>
+        <li>
+            <a href="#" class="block font-semibold hover:text-green-600 hover:underline" onclick="closeSidebar()">Functions</a>
+        </li>
+        <li>
+            <a href="#" class="block font-semibold hover:text-green-600 hover:underline" onclick="closeSidebar()">Modules</a>
+        </li>
+        <li>
+            <a href="#" class="block font-semibold hover:text-green-600 hover:underline" onclick="closeSidebar()">Functions</a>
+        </li>
+        <li>
+            <a href="#" class="block font-semibold hover:text-green-600 hover:underline" onclick="closeSidebar()">Modules</a>
+        </li>
+        <li>
+            <a href="#" class="block font-semibold hover:text-green-600 hover:underline" onclick="closeSidebar()">Functions</a>
+        </li>
+        <li>
+            <a href="#" class="block font-semibold hover:text-green-600 hover:underline" onclick="closeSidebar()">Modules</a>
+        </li>
+        <li>
+            <a href="#" class="block font-semibold hover:text-green-600 hover:underline" onclick="closeSidebar()">Functions</a>
+        </li>
+        <li>
+            <a href="#" class="block font-semibold hover:text-green-600 hover:underline" onclick="closeSidebar()">Modules</a>
+        </li>
+        <li>
+            <a href="#" class="block font-semibold hover:text-green-600 hover:underline" onclick="closeSidebar()">Functions</a>
+        </li>
+        <li>
+            <a href="#" class="block font-semibold hover:text-green-600 hover:underline" onclick="closeSidebar()">Modules</a>
+        </li>
+        <li>
+            <a href="#" class="block font-semibold hover:text-green-600 hover:underline" onclick="closeSidebar()">Functions</a>
+        </li>
+        <li>
+            <a href="#" class="block font-semibold hover:text-green-600 hover:underline" onclick="closeSidebar()">Modules</a>
+        </li>
+        <li>
+            <a href="#" class="block font-semibold hover:text-green-600 hover:underline" onclick="closeSidebar()">Functions</a>
+        </li>
+        <li>
+            <a href="#" class="block font-semibold hover:text-green-600 hover:underline" onclick="closeSidebar()">Modules</a>
+        </li>
+    </ul>
+</aside>
+<!-- Overlay for mobile/tablet -->
+<div id="sidebar-overlay" class="hidden fixed inset-0 bg-black bg-opacity-30 z-30 lg:hidden" onclick="toggleSidebar()"></div>
+<script>
+  // Sidebar open/close
+  function toggleSidebar() {
+    const sidebar = document.getElementById("sidebar");
+    const overlay = document.getElementById("sidebar-overlay");
+    const isOpen = !sidebar.classList.contains("-translate-x-full");
+
+    if (isOpen) {
+      sidebar.classList.add("-translate-x-full");
+      overlay.classList.add("hidden");
+    } else {
+      sidebar.classList.remove("-translate-x-full");
+      overlay.classList.remove("hidden");
+    }
+  }
+
+  function closeSidebar() {
+    const sidebar = document.getElementById("sidebar");
+    const overlay = document.getElementById("sidebar-overlay");
+
+    sidebar.classList.add("-translate-x-full");
+    overlay.classList.add("hidden");
+  }
+
+  // Expand/collapse subtopics
+  function toggleSubtopics(id, arrowId) {
+    const subMenu = document.getElementById(id);
+    const arrow = document.getElementById(arrowId);
+
+    if (subMenu.style.maxHeight && subMenu.style.maxHeight !== "0px") {
+      subMenu.style.maxHeight = "0px";
+      arrow.style.transform = "rotate(0deg)";
+    } else {
+      subMenu.style.maxHeight = subMenu.scrollHeight + "px";
+      arrow.style.transform = "rotate(90deg)";
+    }
+  }
+</script>
