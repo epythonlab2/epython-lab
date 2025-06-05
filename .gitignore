@@ -1,3 +1,9 @@
 # Exclude unnecessary files
 .venv/
 __pycache__/
+instance/
+tailwind.config.js
+*.json
+.pytest_cache/
+input.css
+output.cssS

@@ -7,7 +7,7 @@ bp = Blueprint('tutorials', __name__, url_prefix='/api/tutorials')
 @bp.route('/', methods=['GET'])
 def get_all_topics():
     topics = Topic.query.all()
-    return TopicSchema(many=True).jsonify(topics)
+    return jsonify(TopicSchema(many=True).dump(topics))
 
 @bp.route('/', methods=['POST'])
 def create_topic():
@@ -15,7 +15,7 @@ def create_topic():
     topic = Topic(title=data['title'])
     db.session.add(topic)
     db.session.commit()
-    return TopicSchema().jsonify(topic), 201
+    return jsonify(TopicSchema().dump(topic)), 201
 
 @bp.route('/<int:topic_id>/subtopics', methods=['POST'])
 def add_subtopic(topic_id):
