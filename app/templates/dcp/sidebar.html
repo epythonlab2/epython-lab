@@ -1,0 +1,157 @@
+<!-- templates/sidebar.html -->
+<!-- Overlay for mobile when sidebar is open -->
+<div id="mobile-sidebar" class="fixed inset-0 bg-black bg-opacity-40 z-20 hidden md:hidden"></div>
+
+<aside class="hidden md:block fixed inset-y-0 left-0 w-64 bg-white dark:bg-gray-900 z-30 shadow-lg">
+
+  <div class="p-6 text-2xl font-bold text-blue-600 dark:text-white border-b border-gray-200 dark:border-gray-700">
+    Admin Panel
+  </div>
+  <nav class="p-4 text-sm text-gray-700 dark:text-gray-200 space-y-1">
+    <a href="#" class="flex items-center gap-3 py-2 px-4 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-800 transition">
+      <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" stroke-width="2"
+           viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round"
+           d="M3 12l2-2m0 0l7-7 7 7m-9 2v6m4 0h-4"></path></svg>
+      Dashboard
+    </a>
+    <a href="#" class="flex items-center gap-3 py-2 px-4 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-800 transition">
+      <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" stroke-width="2"
+           viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round"
+           d="M8 16l-4-4 4-4m8 8l4-4-4-4M12 4v16"></path></svg>
+      Tutorials
+    </a>
+    <a href="#" class="flex items-center gap-3 py-2 px-4 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-800 transition">
+      <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" stroke-width="2"
+           viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round"
+           d="M4 6h16M4 12h16M4 18h16"></path></svg>
+      Blog Posts
+    </a>
+    <a href="#" class="flex items-center gap-3 py-2 px-4 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-800 transition">
+      <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" stroke-width="2"
+           viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round"
+           d="M5.121 17.804A9.969 9.969 0 0112 15c2.21 0 4.244.714 5.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+      Users
+    </a>
+    <a href="#" class="flex items-center gap-3 py-2 px-4 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-800 transition">
+      <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" stroke-width="2"
+           viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round"
+           d="M9.75 17L4.5 12l5.25-5M14.25 7l5.25 5-5.25 5"></path></svg>
+      Analytics
+    </a>
+
+    <div class="border-t border-gray-200 dark:border-gray-700 my-4"></div>
+
+    <a href="#" class="flex items-center gap-3 py-2 px-4 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900 transition">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
+           viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round"
+           d="M17 16l4-4m0 0l-4-4m4 4H7"></path></svg>
+      Logout
+    </a>
+  </nav>
+</aside>
+
+<!-- Mobile Sidebar Panel -->
+<aside id="mobile-sidebar-panel"
+       class="fixed inset-y-0 left-0 w-64 bg-white dark:bg-gray-900 z-40 transform -translate-x-full transition-transform duration-300 md:hidden shadow-lg">
+  <div class="p-6 text-2xl font-bold text-blue-600 dark:text-white border-b border-gray-200 dark:border-gray-700">
+    Admin Panel
+  </div>
+  <nav class="p-4 text-sm text-gray-700 dark:text-gray-200 space-y-1">
+    <a href="#" class="flex items-center gap-3 py-2 px-4 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-800 transition">
+      <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" stroke-width="2"
+           viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round"
+           d="M3 12l2-2m0 0l7-7 7 7m-9 2v6m4 0h-4"></path></svg>
+      Dashboard
+    </a>
+    <a href="#" class="flex items-center gap-3 py-2 px-4 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-800 transition">
+      <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" stroke-width="2"
+           viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round"
+           d="M8 16l-4-4 4-4m8 8l4-4-4-4M12 4v16"></path></svg>
+      Tutorials
+    </a>
+    <a href="#" class="flex items-center gap-3 py-2 px-4 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-800 transition">
+      <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" stroke-width="2"
+           viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round"
+           d="M4 6h16M4 12h16M4 18h16"></path></svg>
+      Blog Posts
+    </a>
+    <a href="#" class="flex items-center gap-3 py-2 px-4 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-800 transition">
+      <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" stroke-width="2"
+           viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round"
+           d="M5.121 17.804A9.969 9.969 0 0112 15c2.21 0 4.244.714 5.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+      Users
+    </a>
+    <a href="#" class="flex items-center gap-3 py-2 px-4 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-800 transition">
+      <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" stroke-width="2"
+           viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round"
+           d="M9.75 17L4.5 12l5.25-5M14.25 7l5.25 5-5.25 5"></path></svg>
+      Analytics
+    </a>
+
+    <div class="border-t border-gray-200 dark:border-gray-700 my-4"></div>
+
+    <a href="#" class="flex items-center gap-3 py-2 px-4 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900 transition">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
+           viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round"
+           d="M17 16l4-4m0 0l-4-4m4 4H7"></path></svg>
+      Logout
+    </a>
+  </nav>
+</aside>
+
+<!-- Mobile Overlay -->
+<div id="mobile-sidebar" class="fixed inset-0 bg-black bg-opacity-40 z-30 hidden md:hidden"></div>
+
+<!-- Desktop Sidebar -->
+<aside class="hidden md:block fixed inset-y-0 left-0 w-64 bg-white dark:bg-gray-900 z-30 shadow-lg">
+  <div class="p-6 text-2xl font-bold text-blue-600 dark:text-white border-b border-gray-200 dark:border-gray-700">
+    Admin Panel
+  </div>
+  <nav class="p-4 space-y-1 text-sm text-gray-700 dark:text-gray-200">
+    <!-- your nav items -->
+    <a href="#" class="flex items-center gap-3 py-2 px-4 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-800 transition">
+      <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" ...></svg> Dashboard
+    </a>
+    
+        <a href="#" class="flex items-center gap-3 py-2 px-4 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-800 transition">
+          <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" stroke-width="2"
+               viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round"
+               d="M3 12l2-2m0 0l7-7 7 7m-9 2v6m4 0h-4"></path></svg>
+          Dashboard
+        </a>
+        <a href="#" class="flex items-center gap-3 py-2 px-4 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-800 transition">
+          <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" stroke-width="2"
+               viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round"
+               d="M8 16l-4-4 4-4m8 8l4-4-4-4M12 4v16"></path></svg>
+          Tutorials
+        </a>
+        <a href="#" class="flex items-center gap-3 py-2 px-4 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-800 transition">
+          <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" stroke-width="2"
+               viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round"
+               d="M4 6h16M4 12h16M4 18h16"></path></svg>
+          Blog Posts
+        </a>
+        <a href="#" class="flex items-center gap-3 py-2 px-4 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-800 transition">
+          <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" stroke-width="2"
+               viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round"
+               d="M5.121 17.804A9.969 9.969 0 0112 15c2.21 0 4.244.714 5.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+          Users
+        </a>
+        <a href="#" class="flex items-center gap-3 py-2 px-4 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-800 transition">
+          <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" stroke-width="2"
+               viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round"
+               d="M9.75 17L4.5 12l5.25-5M14.25 7l5.25 5-5.25 5"></path></svg>
+          Analytics
+        </a>
+    
+        <div class="border-t border-gray-200 dark:border-gray-700 my-4"></div>
+    
+        <a href="#" class="flex items-center gap-3 py-2 px-4 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
+               viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round"
+               d="M17 16l4-4m0 0l-4-4m4 4H7"></path></svg>
+          Logout
+        </a>
+     
+  </nav>
+</aside>

@@ -2,20 +2,9 @@ from flask import Blueprint, render_template
 
 bp = Blueprint('dashboard', __name__)
 
-@bp.route('/admin/dashboard')
-def admin_dashboard():
-    salons = [
-        {"name": "Glow & Go", "rating": 4.9},
-        {"name": "Luxe Looks", "rating": 4.8},
-        {"name": "Radiant You", "rating": 4.7},
-    ]
-    reviews = [
-        {"customer": "Amanda I.", "rating": 5},
-        {"customer": "John D.", "rating": 5},
-        {"customer": "Sarah M.", "rating": 5},
-        {"customer": "Daniel K.", "rating": 5},
-    ]
-    return render_template("/dashboard/admin_dashboard.html", salons=salons, reviews=reviews)
+@bp.route('/dcp/dashboard')
+def dashboard():
+       return render_template("/dcp/dashboard.html")
 
 
 @bp.route('/salon/dashboard')
