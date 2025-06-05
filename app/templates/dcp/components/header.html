@@ -1,0 +1,19 @@
+<header class="bg-gray-900 md:bg-white text-white md:text-gray-700 shadow-md px-6 py-4 flex justify-between items-center border-b border-gray-800 md:border-gray-200">
+  
+  <!-- Mobile Hamburger -->
+  <button id="mobile-menu-button" class="md:hidden text-gray-300 md:text-gray-600 focus:outline-none">
+    <i data-lucide="menu" class="w-6 h-6"></i>
+  </button>
+
+  <!-- Page Title -->
+  <h1 class="text-xl font-semibold">
+    {% block header_title %}Dashboard{% endblock %}
+  </h1>
+
+  <!-- Admin Profile -->
+  <div class="flex items-center space-x-4">
+    <span class="text-sm text-gray-300 md:text-gray-500">Admin</span>
+    <img src="https://i.pravatar.cc/32" alt="Avatar"
+         class="w-8 h-8 rounded-full border border-gray-700 md:border-gray-200">
+  </div>
+</header>
