@@ -190,7 +190,7 @@
     // Load topics with pagination
     async function loadTopics(page = 1) {
       try {
-        const response = await fetch(`/api/v1/tutorials/?page=${page}&limit=${pageSize}`);
+        const response = await fetch(`/api/v1/topics/?page=${page}&limit=${pageSize}`);
         if (!response.ok) throw new Error('Failed to fetch topics');
   
         const data = await response.json();
@@ -220,7 +220,7 @@
                 <button data-id="${topic.id}" class="delete-topic text-red-600 hover:text-red-800" title="Delete Topic" type="button" aria-label="Delete topic ${topic.title}">
                   <i data-lucide="trash-2" class="w-4 h-4">Del</i>
                 </button>
-                <a href="/dcp/admin/tutorials/${topic.id}" class="text-blue-600 hover:underline text-sm" title="Manage Topic" tabindex="0" aria-label="Manage topic ${topic.title}">
+                <a href="/dcp/admin/${ topic.id }/subtopics" class="text-blue-600 hover:underline text-sm" title="Manage topic ${ topic.title }" tabindex="0" aria-label="Manage topic ${topic.title}">
                   Manage
                 </a>
               </div>
@@ -274,7 +274,7 @@
       }
   
       try {
-        const response = await fetch('/api/v1/tutorials/', {
+        const response = await fetch('/api/v1/topics/', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ title }),
@@ -318,7 +318,7 @@
       if (!editingTopicId) return;
   
       try {
-        const response = await fetch(`/api/v1/tutorials/${editingTopicId}`, {
+        const response = await fetch(`/api/v1/topics/${editingTopicId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ title: newTitle }),
@@ -354,7 +354,7 @@
         if (!confirmed) return;
   
         try {
-          const response = await fetch(`/api/v1/tutorials/${topicId}`, { method: 'DELETE' });
+          const response = await fetch(`/api/v1/topics/${topicId}`, { method: 'DELETE' });
           if (response.ok) {
             showMessage('Topic deleted successfully.', 'success');
             // If deleting the last item on page, reload previous page if exists

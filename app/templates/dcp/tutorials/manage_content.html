@@ -1,0 +1,142 @@
+{% extends '/dcp/components/base.html' %}
+
+{% block title %}Create New Content{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 flex flex-col">
+
+  <!-- Header -->
+  <header class="bg-white shadow-sm">
+    <div class="max-w-4xl mx-auto py-4 px-4 sm:px-6 lg:px-8 text-center">
+      <div class="inline-flex items-center gap-2 justify-center">
+        <i data-lucide="pen-line" class="w-6 h-6 text-blue-600" aria-hidden="true"></i>
+        <h2 class="text-lg font-semibold text-gray-800">Create New Content</h2>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Form -->
+  <main class="flex-grow max-w-3x2 w-full mx-auto px-4 py-10 sm:px-6 lg:px-8">
+
+    <!-- Message Box -->
+    <div id="message-box" class="hidden mb-6 rounded-md p-4 text-sm" aria-live="polite"></div>
+
+    <form id="create-subtopic-form"
+          onsubmit="return false;"
+          class="bg-white shadow-md border border-gray-200 rounded-2xl p-8 space-y-8">
+
+      <!-- Subtopic Title -->
+      <div>
+        <label for="title" class="block text-sm font-medium text-gray-700 mb-2">
+          Subtopic Title
+        </label>
+        <input
+          type="text"
+          id="title"
+          name="title"
+          required
+          placeholder="Enter your subtopic title here"
+          class="w-full rounded-lg border border-gray-300 px-4 py-3 shadow-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+        />
+      </div>
+
+      <!-- Rich Text Editor -->
+      <div class="quill-wrapper w-full">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Content</label>
+        <div id="editor" class="editor w-full min-h-[300px] border border-gray-300 rounded-lg bg-white shadow-inner p-4 text-gray-800"></div>
+        <input type="hidden" name="content" id="content-input-0" />
+      </div>
+
+      <!-- Button Group -->
+      <div class="flex justify-between items-center flex-wrap gap-4">
+        <a href="/dcp/admin/{{ topic_id }}/subtopics"
+           class="text-sm text-gray-500 hover:underline hover:text-blue-600 transition">
+          ← Back to Manage Subtopics
+        </a>
+        <div class="flex gap-3">
+          <button
+            type="button"
+            data-status="draft"
+            class="save-btn bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold px-5 py-2.5 rounded-lg transition shadow-sm"
+          >
+            Save Draft
+          </button>
+          <button
+            type="button"
+            data-status="published"
+            class="save-btn bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2.5 rounded-lg transition shadow-md"
+          >
+            Publish
+          </button>
+        </div>
+      </div>
+
+    </form>
+  </main>
+
+</div>
+
+<input type="hidden" id="topic-id" value="{{ topic_id }}">
+
+<!-- Script -->
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+   
+
+    const form = document.getElementById('create-subtopic-form');
+    const titleInput = document.getElementById('title');
+    const contentInput = document.getElementById('content-input-0');
+    const editorInstance = initializeAllQuillEditors()['editor'];
+
+    // Save buttons
+    document.querySelectorAll('.save-btn[data-status]').forEach(button => {
+      button.addEventListener('click', async () => {
+        // Sync editor content
+        contentInput.value = editorInstance.root.innerHTML;
+        const status = button.getAttribute('data-status');
+        const title = titleInput.value.trim();
+        const content = contentInput.value.trim();
+
+        if (!title || !content) {
+          showMessage('Title and content are required.', 'red');
+          return;
+        }
+
+        const payload = { title, content, status };
+
+        try {
+          const response = await fetch(`/api/v1/topics/{{ topic_id }}/subtopics`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          const result = await response.json();
+          if (response.ok) {
+            showMessage(`Subtopic ${status === 'draft' ? 'saved as draft' : 'published'} successfully.`, 'green');
+            titleInput.value = '';
+            editorInstance.setContents([]);
+          } else {
+            showMessage(result.message || 'Failed to save subtopic.', 'red');
+          }
+        } catch (error) {
+          console.error(error);
+          showMessage('An error occurred while submitting the form.', 'red');
+        }
+      });
+    });
+
+    // Message display
+    function showMessage(message, color) {
+      const box = document.getElementById('message-box');
+      const colorClasses = {
+        red: 'bg-red-100 text-red-800',
+        green: 'bg-green-100 text-green-800'
+      };
+      box.textContent = message;
+      box.className = `block mb-6 rounded-md p-4 text-sm ${colorClasses[color] || ''}`;
+    }
+  });
+</script>
+
+{% endblock %}
