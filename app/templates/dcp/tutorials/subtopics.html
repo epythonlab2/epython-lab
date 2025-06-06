@@ -107,7 +107,9 @@
   }
 
   function editSubtopic(id) {
-    alert("Edit functionality not yet implemented.");
+    const topicId = document.getElementById("topic-id").value;
+    window.location.href = `/dcp/admin/subtopics/create?topic_id=${topicId}&subtopic_id=${id}`;
   }
+  
 </script>
 {% endblock %}
