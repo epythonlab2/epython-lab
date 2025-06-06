@@ -23,10 +23,10 @@ class TutorialsApiTest(unittest.TestCase):
         self.app_context.pop()
 
     def test_create_and_get_topic(self):
-        response = self.client.post('/api/tutorials/', json={"title": "Python Basics"})
+        response = self.client.post('/api/v1/tutorials/', json={"title": "Python Basics"})
         self.assertEqual(response.status_code, 201)
 
-        get_response = self.client.get('/api/tutorials/')
+        get_response = self.client.get('/api/v1/tutorials/')
         self.assertEqual(get_response.status_code, 200)
         self.assertIn("Python Basics", get_response.get_data(as_text=True))
 
@@ -35,7 +35,7 @@ class TutorialsApiTest(unittest.TestCase):
         db.session.add(topic)
         db.session.commit()
 
-        response = self.client.post(f'/api/tutorials/{topic.id}/subtopics', json={
+        response = self.client.post(f'/api/v1/tutorials/{topic.id}/subtopics', json={
             "title": "Routing",
             "content": "How Flask routes requests",
             "code_snippet": "@app.route('/')"
@@ -57,7 +57,7 @@ class TutorialsApiTest(unittest.TestCase):
             "correct_answer": "A"
         } for i in range(10)]
 
-        response = self.client.post(f'/api/tutorials/subtopics/{sub.id}/quizzes', json=quizzes)
+        response = self.client.post(f'/api/v1/tutorials/subtopics/{sub.id}/quizzes', json=quizzes)
         self.assertEqual(response.status_code, 201)
         self.assertIn("Quizzes added", response.get_data(as_text=True))
 

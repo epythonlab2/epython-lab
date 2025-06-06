@@ -61,3 +61,14 @@ body::-webkit-scrollbar {
   scrollbar-color: rgba(72, 187, 120, 0.9) transparent;
 }
 
+
+#pagination-controls {
+  transition: opacity 0.3s ease-in-out;
+}
+#pagination-controls[hidden] {
+  opacity: 0;
+  pointer-events: none;
+  height: 0;
+  overflow: hidden;
+}
+

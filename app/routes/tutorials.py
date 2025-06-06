@@ -2,31 +2,75 @@ from flask import Blueprint, request, jsonify
 from app.models.tutorial import db, Topic, SubTopic, Quiz
 from schemas import TopicSchema, SubTopicSchema, QuizSchema
 
-bp = Blueprint('tutorials', __name__, url_prefix='/api/tutorials')
+bp = Blueprint('tutorials', __name__, url_prefix='/api/v1/tutorials')
 
 # Fetch all topics
 @bp.route('/', methods=['GET'])
 def get_all_topics():
-    topics = Topic.query.all()
-    return jsonify(TopicSchema(many=True).dump(topics)), 200
+    # Get query parameters for pagination, default page=1, limit=10
+    try:
+        page = int(request.args.get('page', 1))
+        limit = int(request.args.get('limit', 5))
+    except ValueError:
+        # fallback to defaults if invalid input
+        page = 1
+        limit = 10
+
+    # Query with pagination
+    pagination = Topic.query.paginate(page=page, per_page=limit, error_out=False)
+
+    topics = pagination.items
+    total_pages = pagination.pages
+    total_items = pagination.total
+
+    # Serialize topics
+    topics_data = TopicSchema(many=True).dump(topics)
+
+    # Compose response with pagination info
+    response = {
+        "topics": topics_data,
+        "page": page,
+        "total_pages": total_pages,
+        "total_items": total_items
+    }
+
+    return jsonify(response), 200
 
 # Create a new topic
 @bp.route('/', methods=['POST'])
 def create_topic():
-    data = request.json
+    data = request.get_json()
+    if not data or 'title' not in data:
+        return jsonify({'error': 'Title is required'}), 400
+    
     topic = Topic(title=data['title'])
     db.session.add(topic)
-    db.session.commit()
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': 'Database error: ' + str(e)}), 500
+    
     return jsonify(TopicSchema().dump(topic)), 201
+
 
 # Update an existing topic
 @bp.route('/<int:topic_id>', methods=['PUT'])
 def update_topic(topic_id):
     topic = Topic.query.get_or_404(topic_id)
-    data = request.json
+    data = request.get_json()
+    if not data or 'title' not in data:
+        return jsonify({'error': 'Title is required'}), 400
+    
     topic.title = data['title']
-    db.session.commit()
-    return jsonify({'message': 'Topic updated successfully'}), 200
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': 'Database error: ' + str(e)}), 500
+    
+    return jsonify({'message': 'Topic updated successfully', 'topic': TopicSchema().dump(topic)}), 200
+
 
 # Delete a topic (and cascade delete its subtopics and quizzes if set in model)
 @bp.route('/<int:topic_id>', methods=['DELETE'])
@@ -69,8 +113,14 @@ def add_subtopic(topic_id):
 # Add quizzes to a subtopic
 @bp.route('/subtopics/<int:subtopic_id>/quizzes', methods=['POST'])
 def add_quizzes(subtopic_id):
-    data = request.json  # Expecting a list of 10 quiz dicts
-    for q in data:
+    data = request.get_json()
+    if not isinstance(data, list):
+        return jsonify({'error': 'Expected a list of quizzes'}), 400
+    
+    required_fields = {'question', 'option_a', 'option_b', 'option_c', 'option_d', 'correct_answer'}
+    for i, q in enumerate(data):
+        if not all(field in q for field in required_fields):
+            return jsonify({'error': f'Missing fields in quiz index {i}'}), 400
         quiz = Quiz(
             question=q['question'],
             option_a=q['option_a'],
@@ -81,5 +131,10 @@ def add_quizzes(subtopic_id):
             subtopic_id=subtopic_id
         )
         db.session.add(quiz)
-    db.session.commit()
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': 'Database error: ' + str(e)}), 500
+    
     return jsonify({'message': 'Quizzes added'}), 201
