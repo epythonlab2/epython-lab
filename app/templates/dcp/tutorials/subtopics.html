@@ -1,0 +1,112 @@
+{% extends '/dcp/components/base.html' %}
+
+{% block title %}Manage Subtopics{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+
+  <h1 id="topic-title" class="text-xl font-bold text-gray-800">Loading...</h1>
+
+  <div class="flex justify-end mb-4">
+    <a href="/dcp/admin/subtopics/create?topic_id={{ topic_id }}"
+       class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg transition duration-200"
+       aria-label="Create New Content">
+      Create Content
+    </a>
+  </div>
+
+  <!-- Existing Subtopics Section -->
+  <section class="bg-white p-6 rounded-2xl shadow-md border border-gray-200">
+    <div class="flex items-center gap-3 mb-4">
+      <i data-lucide="list" class="w-5 h-5 text-green-600"></i>
+      <h2 class="text-lg font-semibold text-gray-800">Subtopics</h2>
+    </div>
+
+    <div id="subtopics-list" class="space-y-4">
+      <p class="text-sm text-gray-500 text-center">Loading subtopics...</p>
+    </div>
+  </section>
+
+</div>
+
+<!-- Hidden input to make topic_id available to JavaScript -->
+<input type="hidden" id="topic-id" value="{{ topic_id }}">
+
+<script>
+  document.addEventListener("DOMContentLoaded", loadTopic);
+
+  async function loadTopic() {
+    const topicId = document.getElementById("topic-id").value;
+    const titleEl = document.getElementById("topic-title");
+    const subtopicsEl = document.getElementById("subtopics-list");
+
+    if (!topicId) {
+      titleEl.textContent = "Topic ID not provided.";
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/v1/topics/${topicId}`);
+      if (!response.ok) throw new Error("Failed to load topic");
+
+      const topic = await response.json();
+      titleEl.textContent = `Manage Subtopics for: ${topic.title}`;
+      document.title = `Manage Subtopics - ${topic.title}`;
+
+      if (topic.subtopics.length === 0) {
+        subtopicsEl.innerHTML = `<p class="text-sm text-gray-500 text-center">No subtopics found for this topic.</p>`;
+        return;
+      }
+
+      subtopicsEl.innerHTML = "";
+      topic.subtopics.forEach(sub => {
+        subtopicsEl.innerHTML += `
+          <div class="p-4 border border-gray-200 rounded-xl shadow-sm bg-gray-50">
+            <div class="flex justify-between items-start">
+              <div>
+                <h3 class="text-base font-semibold text-gray-900">${sub.title}</h3>
+                <p class="text-xs text-gray-500">Status: ${sub.status.charAt(0).toUpperCase() + sub.status.slice(1)}</p>
+              </div>
+              <div class="flex gap-3 text-sm">
+                <button onclick="editSubtopic(${sub.id})" class="text-blue-600 hover:underline">Edit</button>
+                <button onclick="deleteSubtopic(${sub.id})" class="text-red-600 hover:underline">Delete</button>
+              </div>
+            </div>
+            <details class="mt-2">
+              <summary class="text-sm text-gray-700 cursor-pointer">View content & code</summary>
+              <div class="mt-2 text-sm text-gray-800 whitespace-pre-wrap">
+                <p><strong>Content:</strong> ${sub.content}</p>
+                ${sub.code_snippet ? `
+                  <div class="mt-2">
+                    <strong>Code:</strong>
+                    <pre class="bg-white border p-2 mt-1 rounded text-sm text-gray-800 overflow-x-auto">${sub.code_snippet}</pre>
+                  </div>
+                ` : ""}
+              </div>
+            </details>
+          </div>`;
+      });
+
+    } catch (error) {
+      titleEl.textContent = "Failed to load topic data.";
+      subtopicsEl.innerHTML = `<p class="text-sm text-red-600 text-center">Error: ${error.message}</p>`;
+    }
+  }
+
+  async function deleteSubtopic(id) {
+    if (!confirm("Are you sure you want to delete this subtopic?")) return;
+
+    const response = await fetch(`/api/v1/tutorials/${id}`, { method: 'DELETE' });
+
+    if (response.ok) {
+      loadTopic();
+    } else {
+      alert("Failed to delete subtopic.");
+    }
+  }
+
+  function editSubtopic(id) {
+    alert("Edit functionality not yet implemented.");
+  }
+</script>
+{% endblock %}

@@ -1,8 +1,9 @@
 from flask import Blueprint, request, jsonify
 from app.models.tutorial import db, Topic, SubTopic, Quiz
 from schemas import TopicSchema, SubTopicSchema, QuizSchema
+from datetime import datetime, timezone
 
-bp = Blueprint('tutorials', __name__, url_prefix='/api/v1/tutorials')
+bp = Blueprint('tutorials', __name__, url_prefix='/api/v1/topics')
 
 # Fetch all topics
 @bp.route('/', methods=['GET'])
@@ -43,7 +44,7 @@ def create_topic():
     if not data or 'title' not in data:
         return jsonify({'error': 'Title is required'}), 400
     
-    topic = Topic(title=data['title'])
+    topic = Topic(title=data['title'], created_at=datetime.now(timezone.utc))
     db.session.add(topic)
     try:
         db.session.commit()
@@ -80,6 +81,7 @@ def delete_topic(topic_id):
     db.session.commit()
     return jsonify({'message': 'Topic deleted successfully'}), 200
 
+
 # Get a single topic (with subtopics and optionally quizzes)
 @bp.route('/<int:topic_id>', methods=['GET'])
 def get_topic_detail(topic_id):
@@ -89,26 +91,27 @@ def get_topic_detail(topic_id):
     subtopics = SubTopic.query.filter_by(topic_id=topic_id).all()
     topic_data['subtopics'] = SubTopicSchema(many=True).dump(subtopics)
 
-    # Optional: Include quizzes nested within each subtopic
     for sub in topic_data['subtopics']:
         quizzes = Quiz.query.filter_by(subtopic_id=sub['id']).all()
         sub['quizzes'] = QuizSchema(many=True).dump(quizzes)
 
     return jsonify(topic_data), 200
 
-# Add subtopic under a topic
+
+# Add content under a topic
 @bp.route('/<int:topic_id>/subtopics', methods=['POST'])
-def add_subtopic(topic_id):
+def create_content(topic_id):
     data = request.json
     sub = SubTopic(
         title=data['title'],
         content=data['content'],
-        code_snippet=data.get('code_snippet'),
+        status=data.get('status', 'draft'),  # Default to 'draft' if not provided
         topic_id=topic_id
     )
     db.session.add(sub)
     db.session.commit()
-    return jsonify({'message': 'Subtopic added'}), 201
+    return jsonify({'message': 'Content Created'}), 201
+
 
 # Add quizzes to a subtopic
 @bp.route('/subtopics/<int:subtopic_id>/quizzes', methods=['POST'])
