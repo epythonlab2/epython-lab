@@ -96,7 +96,8 @@
   async function deleteSubtopic(id) {
     if (!confirm("Are you sure you want to delete this subtopic?")) return;
 
-    const response = await fetch(`/api/v1/tutorials/${id}`, { method: 'DELETE' });
+    const response = await fetch(`/api/v1/topics/subtopic/${id}`, { method: 'DELETE' });
+
 
     if (response.ok) {
       loadTopic();

@@ -112,6 +112,13 @@ def create_content(topic_id):
     db.session.commit()
     return jsonify({'message': 'Content Created'}), 201
 
+# Route: /api/v1/topics/subtopic/<subtopic_id>
+@bp.route('/subtopic/<int:subtopic_id>', methods=['DELETE'])
+def delete_subtopic(subtopic_id):
+    subtopic = SubTopic.query.get_or_404(subtopic_id)
+    db.session.delete(subtopic)
+    db.session.commit()
+    return jsonify({'message': 'Subtopic deleted successfully'}), 200
 
 # Add quizzes to a subtopic
 @bp.route('/subtopics/<int:subtopic_id>/quizzes', methods=['POST'])
