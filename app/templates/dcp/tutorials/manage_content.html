@@ -88,23 +88,7 @@
     const contentInput = document.getElementById('content-input');
     const messageBox   = document.getElementById('message-box');
 
-    // Initialize Quill editor
-    const quill = new Quill('#editor', {
-      theme: 'snow',
-      modules: {
-        toolbar: [
-          [{ header: [1, 2, 3, false] }],
-          ['bold', 'italic', 'underline', 'strike'],
-          ['blockquote', 'code-block'],
-          [{ list: 'ordered' }, { list: 'bullet' }],
-          ['link', 'image'],
-          ['clean']
-        ]
-      },
-      placeholder: 'Write your content here...'
-    });
-
-    // If editing, fetch existing subtopic data
+       // If editing, fetch existing subtopic data
     if (subtopicId) {
       fetch(`/api/v1/topics/subtopic/${subtopicId}`)
         .then(res => {
