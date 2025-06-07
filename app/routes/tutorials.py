@@ -174,7 +174,7 @@ def update_content(subtopic_id):
     subtopic.title        = data['title'].strip()
     subtopic.content      = data['content'].strip()
     subtopic.status       = data.get('status', subtopic.status)
-    subtopic.code_snippet = data.get('code_snippet', subtopic.code_snippet)
+    subtopic.updated_at = data.get('updated_at', datetime.now(timezone.utc))
 
     try:
         db.session.commit()
