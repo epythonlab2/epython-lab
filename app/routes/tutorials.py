@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify, abort
 from app.models.tutorial import db, Topic, SubTopic, Quiz
 from schemas import TopicSchema, SubTopicSchema, QuizSchema
 from datetime import datetime, timezone
+from app.models.utils import slugify
 
 bp = Blueprint('tutorials', __name__, url_prefix='/api/v1/topics')
 
@@ -32,8 +33,7 @@ def get_all_topics():
         'total_pages': pagination.pages,
         'total_items': pagination.total
     }), 200
-
-
+    
 @bp.route('/', methods=['POST'])
 def create_topic():
     """
@@ -45,6 +45,7 @@ def create_topic():
 
     new_topic = Topic(
         title      = data['title'].strip(),
+        slug = slugify(data['title'].strip()),
         created_at = datetime.now(timezone.utc)
     )
     db.session.add(new_topic)
@@ -87,6 +88,7 @@ def update_topic(topic_id):
         return jsonify({'error': 'Title is required'}), 400
 
     topic.title = data['title'].strip()
+    topic.slug = slugify(topic.title)
 
     try:
         db.session.commit()
@@ -137,8 +139,8 @@ def create_content(topic_id):
     new_subtopic = SubTopic(
         title        = data['title'].strip(),
         content      = data['content'].strip(),
+        slug         = slugify(data['title'].strip()),
         status       = data.get('status', 'draft'),
-        code_snippet = data.get('code_snippet', None),
         topic_id     = topic_id
     )
     db.session.add(new_subtopic)
@@ -173,6 +175,7 @@ def update_content(subtopic_id):
 
     subtopic.title        = data['title'].strip()
     subtopic.content      = data['content'].strip()
+    subtopic.slug         = slugify(data['title'].strip())
     subtopic.status       = data.get('status', subtopic.status)
     subtopic.updated_at = data.get('updated_at', datetime.now(timezone.utc))
 
@@ -203,6 +206,42 @@ def delete_content(subtopic_id):
         return jsonify({'error': f'Database error: {str(e)}'}), 500
 
     return jsonify({'message': 'Subtopic deleted successfully'}), 200
+
+# ----------------------------------------
+# TOPIC and SubTopic ENDPOINTS to Display on Clients
+# ----------------------------------------
+
+def get_subtopic_by_slug(topic_slug, subtopic_slug):
+    return SubTopic.query.join(Topic).filter(
+        Topic.slug == topic_slug,
+        SubTopic.slug == subtopic_slug,
+        SubTopic.status == 'published'
+    ).first()
+    
+@bp.route('/sidebar', methods=['GET']) 
+def get_sidebar_topics():
+    topics = Topic.query.all()
+    result = []
+    for topic in topics:
+        result.append({
+            "id": topic.id,
+            "title": topic.title,
+            'slug':topic.slug,
+            "subtopics": [{"id": st.id, "title": st.title, 'slug':st.slug} for st in topic.subtopics if st.status=='published']
+        })
+    return jsonify(result)
+
+@bp.route('/<topic_slug>/<subtopic_slug>')
+def get_subtopic_content(topic_slug, subtopic_slug):
+    subtopic = get_subtopic_by_slug(topic_slug, subtopic_slug)
+    if not subtopic or subtopic.status != 'published':
+        return jsonify({"error": "Not found"}), 404
+
+    return jsonify({
+        "title": subtopic.title,
+        "content": subtopic.content
+    })
+
 
 
 # ----------------------------------------

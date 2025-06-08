@@ -1,0 +1,78 @@
+{% extends "/frontend/base.html" %}
+
+{% block title %}Python Introduction{% endblock %}
+
+{% block content %}
+<section class="mt-12">
+  <div class="bg-gray-50 dark:bg-gray-800 border border-dashed border-gray-300 dark:border-gray-600 p-6 rounded-xl text-center">
+    <p class="text-gray-400 dark:text-gray-500">[Ad Placeholder]</p>
+  </div>
+</section>
+
+<section class="mt-4">
+  <div class="bg-white bg-gradient-to-b from-white to-gray-100 dark:from-gray-900 dark:to-gray-800 p-6 text-gray-900 dark:text-gray-100">
+    <h1 id="tutorial-title" class="text-4xl font-bold mb-4"></h1>
+    <div id="tutorial-content" class="prose dark:prose-invert quill-content">
+      <div class="dynamic-code quill-content" id="dynamic-code-0">
+        Loading...
+      </div>
+    </div>
+    <div class="mt-6">
+      <a href="/python/setup/" class="inline-block bg-green-600 text-white px-6 py-3 font-semibold shadow hover:bg-green-700 transition mt-6">
+        Continue to Setup →
+      </a>
+      
+    </div>
+  </div>
+</section>
+
+<section class="mt-12">
+  <div class="bg-gray-50 dark:bg-gray-800 border border-dashed border-gray-300 dark:border-gray-600 p-6 rounded-xl text-center">
+    <p class="text-gray-400 dark:text-gray-500">[Ad Placeholder]</p>
+  </div>
+</section>
+
+<script>
+  document.addEventListener("DOMContentLoaded", async () => {
+    const topicSlug = "{{ topic_slug }}";
+    const subtopicSlug = "{{ subtopic_slug }}";
+
+    try {
+      const response = await fetch(`/api/v1/topics/${topicSlug}/${subtopicSlug}`);
+      if (!response.ok) throw new Error("Content not found");
+
+      const data = await response.json();
+
+      // Update title and content
+      document.getElementById("tutorial-title").textContent = data.title;
+      document.getElementById("tutorial-content").innerHTML = `
+        <div class="dynamic-code quill-content" id="dynamic-code-0">
+          ${data.content}
+        </div>
+      `;
+
+      highlightCodeBlocks("dynamic-code-0");
+
+    } catch (error) {
+      document.getElementById("tutorial-content").innerHTML = `
+        <p class="text-red-600">Failed to load tutorial content.</p>
+      `;
+      console.error("Error loading tutorial content:", error);
+    }
+  });
+
+  /**
+   * Highlights all code blocks inside the container with the specified ID.
+   * @param {string} containerId - The ID of the container element
+   */
+  function highlightCodeBlocks(containerId) {
+    setTimeout(() => {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+
+      const codeBlocks = container.querySelectorAll("pre code");
+      codeBlocks.forEach(block => Prism.highlightElement(block));
+    }, 0); // Allow DOM update
+  }
+</script>
+{% endblock %}

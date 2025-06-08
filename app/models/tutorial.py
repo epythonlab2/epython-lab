@@ -5,6 +5,7 @@ from sqlalchemy import Enum
 class Topic(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(150), nullable=False)
+    slug = db.Column(db.String(100), unique=True, nullable=False)
     created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     subtopics = db.relationship('SubTopic', backref='topic', cascade="all, delete-orphan")
 
@@ -12,7 +13,7 @@ class SubTopic(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(150), nullable=False)
     content = db.Column(db.Text, nullable=False)
-    code_snippet = db.Column(db.Text)
+    slug = db.Column(db.String(100), unique=True, nullable=False)
     status = db.Column(Enum('draft', 'published', name='content_status'), default='draft')
     created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime(timezone=True))

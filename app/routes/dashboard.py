@@ -33,3 +33,8 @@ def create_content():
         topic_id=topic_id,
         subtopic_id=subtopic_id
     )
+
+@bp.route('/python/<topic_slug>/<subtopic_slug>')
+def show_subtopic(topic_slug, subtopic_slug):
+    print(topic_slug) # e.g introduction
+    return render_template("frontend/content.html", topic_slug=topic_slug, subtopic_slug=subtopic_slug)
