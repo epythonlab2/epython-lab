@@ -6,6 +6,14 @@ from app.models.utils import slugify
 
 bp = Blueprint('tutorials', __name__, url_prefix='/api/v1/topics')
 
+# Utility Function
+def get_subtopic_by_slug(topic_slug, subtopic_slug):
+    return SubTopic.query.join(Topic).filter(
+        Topic.slug == topic_slug,
+        SubTopic.slug == subtopic_slug,
+        SubTopic.status == 'published'
+    ).first()
+    
 # ----------------------------------------
 # TOPIC ENDPOINTS
 # ----------------------------------------
@@ -211,13 +219,6 @@ def delete_content(subtopic_id):
 # TOPIC and SubTopic ENDPOINTS to Display on Clients
 # ----------------------------------------
 
-def get_subtopic_by_slug(topic_slug, subtopic_slug):
-    return SubTopic.query.join(Topic).filter(
-        Topic.slug == topic_slug,
-        SubTopic.slug == subtopic_slug,
-        SubTopic.status == 'published'
-    ).first()
-    
 @bp.route('/sidebar', methods=['GET']) 
 def get_sidebar_topics():
     topics = Topic.query.all()
@@ -231,16 +232,57 @@ def get_sidebar_topics():
         })
     return jsonify(result)
 
-@bp.route('/<topic_slug>/<subtopic_slug>')
+@bp.route('/<string:topic_slug>/<string:subtopic_slug>', methods=['GET'])
 def get_subtopic_content(topic_slug, subtopic_slug):
     subtopic = get_subtopic_by_slug(topic_slug, subtopic_slug)
-    if not subtopic or subtopic.status != 'published':
-        return jsonify({"error": "Not found"}), 404
+    if not subtopic:
+        return jsonify({"error": "Subtopic not found"}), 404
+
+    topic = subtopic.topic
+
+    # All published subtopics across all topics
+    all_subtopics = (
+        SubTopic.query
+        .filter_by(status='published')
+        .order_by(SubTopic.id.asc())
+        .all()
+    )
+    all_subtopic_slugs = [st.slug for st in all_subtopics]
+
+    # Find the next subtopic in current topic
+    next_subtopic = (
+        SubTopic.query
+        .filter(
+            SubTopic.topic_id == topic.id,
+            SubTopic.status == 'published',
+            SubTopic.id > subtopic.id
+        )
+        .order_by(SubTopic.id.asc())
+        .first()
+    )
+
+    if not next_subtopic:
+        # Fallback: next topic’s first subtopic
+        next_topic = (
+            Topic.query
+            .filter(Topic.id > topic.id)
+            .order_by(Topic.id.asc())
+            .first()
+        )
+        if next_topic:
+            next_subtopic = (
+                SubTopic.query
+                .filter_by(topic_id=next_topic.id, status='published')
+                .order_by(SubTopic.id.asc())
+                .first()
+            )
 
     return jsonify({
         "title": subtopic.title,
-        "content": subtopic.content
-    })
+        "content": subtopic.content,
+        "all_subtopics": all_subtopic_slugs,
+        "next_subtopic_slug": next_subtopic.slug if next_subtopic else None
+    }), 200
 
 
 
