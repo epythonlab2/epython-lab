@@ -12,3 +12,4 @@ def slugify(value):
     value = re.sub(r'[-\s]+', '-', value)
     return value
 
+
