@@ -1,58 +1,85 @@
-
 {% extends "/frontend/base.html" %}
 
 {% block title %}Python Tutorial{% endblock %}
 
 {% block content %}
+<!-- Advertisement Section -->
 <section id="ad-section" class="mt-12">
   <div class="bg-gray-50 dark:bg-gray-800 border border-dashed border-gray-300 dark:border-gray-600 p-6 rounded-xl text-center">
-    <p class="text-gray-400 dark:text-gray-500">[Ad Placeholder]</p>
+    <p class="text-gray-400 dark:text-gray-500">[Advertisement Placeholder]</p>
   </div>
 </section>
 
+<!-- Welcome Section -->
 <section class="bg-green-100 dark:bg-gray-900 p-6 mt-8 rounded-2xl shadow-xl">
   <h2 class="text-3xl font-bold mb-4">Welcome to the Python Tutorial</h2>
-  <p class="mb-4 text-lg">Learn Python the fun way, interactive, clear, and structured.</p>
-  <div class="mt-6">
-    <a href="/python/" class="inline-block bg-green-600 text-white px-6 py-3 rounded-lg font-semibold shadow hover:bg-green-700 transition">
-      Start Learning Python Now
-    </a>  
-    
+  <p class="mb-4 text-lg">Master Python through an interactive, structured, and engaging learning experience.</p>
+  
+  <div class="mt-6 space-y-4">
+    <a id="start-button" href="/python/" class="inline-block bg-green-600 text-white px-6 py-3 rounded-lg font-semibold shadow hover:bg-green-700 transition">
+      Start Learning Python
+    </a>
+    <a id="resume-button" href="#" class="hidden bg-yellow-500 text-white px-6 py-3 rounded-lg font-semibold shadow hover:bg-yellow-600 transition">
+      Resume Your Last Lesson
+    </a>
   </div>
+
   <div class="bg-gray-100 dark:bg-gray-700 text-center p-6 border border-dashed border-gray-300 dark:border-gray-600 mt-8 rounded-lg">
-    <p class="text-gray-500 dark:text-gray-300">[Google Ad Placeholder]</p>
+    <p class="text-gray-500 dark:text-gray-300">[Google Advertisement Placeholder]</p>
   </div>
 </section>
 
+<!-- Quiz Preview Section -->
 <section id="quiz-preview" class="mt-12">
-  <h3 class="text-2xl font-bold mb-4">Try a Quiz</h3>
+  <h3 class="text-2xl font-bold mb-4">Practice with a Quiz</h3>
   <div class="bg-green-100 dark:bg-green-900 p-4 rounded-xl text-green-900 dark:text-green-100 shadow-md">
-    <p class="mb-2">Test your knowledge with interactive quizzes.</p>
-    <a href="#" class="inline-block mt-2 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Start Quiz</a>
+    <p class="mb-2">Assess your understanding through interactive quizzes.</p>
+    <a href="#" class="inline-block mt-2 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">Start Quiz</a>
   </div>
 </section>
 
+<!-- Blog Section -->
 <section id="blog" class="mt-12">
-  <h3 class="text-2xl font-bold mb-6">Latest Blog Posts</h3>
+  <h3 class="text-2xl font-bold mb-6">Latest Blog Articles</h3>
   <div class="grid gap-6 md:grid-cols-2">
     <article class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg hover:shadow-xl transition">
-      <img src="https://via.placeholder.com/400x200" alt="Python Lists" class="rounded-lg mb-4 w-full h-auto">
+      <img src="https://via.placeholder.com/400x200" alt="Understanding Python Lists" class="rounded-lg mb-4 w-full h-auto">
       <h4 class="text-xl font-semibold mb-2">Understanding Python Lists</h4>
-      <p class="text-sm mb-3 text-gray-700 dark:text-gray-300">Explore Python lists, their methods, and how to manipulate data effectively.</p>
+      <p class="text-sm mb-3 text-gray-700 dark:text-gray-300">Discover how to effectively use Python lists, their methods, and best practices for data manipulation.</p>
       <a href="#" class="text-green-600 hover:underline font-medium">Read More →</a>
     </article>
+
     <article class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg hover:shadow-xl transition">
-      <img src="https://via.placeholder.com/400x200" alt="Tips for Beginners" class="rounded-lg mb-4 w-full h-auto">
+      <img src="https://via.placeholder.com/400x200" alt="Tips for Python Beginners" class="rounded-lg mb-4 w-full h-auto">
       <h4 class="text-xl font-semibold mb-2">Tips for Python Beginners</h4>
-      <p class="text-sm mb-3 text-gray-700 dark:text-gray-300">Essential tips to start your Python journey with confidence and clarity.</p>
+      <p class="text-sm mb-3 text-gray-700 dark:text-gray-300">Start your Python journey with essential tips that build confidence and clarity.</p>
       <a href="#" class="text-green-600 hover:underline font-medium">Read More →</a>
     </article>
   </div>
 </section>
 
-<section id="ad-section" class="mt-12">
+<!-- Additional Advertisement Section -->
+<section class="mt-12">
   <div class="bg-gray-50 dark:bg-gray-800 border border-dashed border-gray-300 dark:border-gray-600 p-6 rounded-xl text-center">
-    <p class="text-gray-400 dark:text-gray-500">[Ad Placeholder]</p>
+    <p class="text-gray-400 dark:text-gray-500">[Advertisement Placeholder]</p>
   </div>
 </section>
+
+<!-- Resume Button Logic -->
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const lastVisited = JSON.parse(localStorage.getItem("lastVisited"));
+    const resumeBtn = document.getElementById("resume-button");
+    const startBtn = document.getElementById("start-button");
+
+    if (lastVisited?.subtopic) {
+      resumeBtn.href = `/python/${lastVisited.subtopic}`;
+      resumeBtn.classList.remove("hidden");
+      if (startBtn) {
+        startBtn.classList.add("hidden");
+      }
+    }
+  });
+</script>
+
 {% endblock %}
