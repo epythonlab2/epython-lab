@@ -74,6 +74,11 @@ body::-webkit-scrollbar {
   height: 0;
   overflow: hidden;
 }
+.sidebar-link-active {
+  color: #16a34a; /* Tailwind's green-600 */
+  font-weight: bold;
+  text-decoration: underline;
+}
 
 
 /* Custom Code Block Style */
@@ -212,7 +217,7 @@ pre[class*="language-"] {
   word-break: break-word;
 }
 
-/* .token.keyword {
+.token.keyword {
   color: #569cd6;
   font-weight: 600;
 }
@@ -232,7 +237,7 @@ pre[class*="language-"] {
 
 .token.number {
   color: #b5cea8;
-} */
+}
 
 /* Make label a flex container */
 .ql-custom-block .ql-picker-label {
