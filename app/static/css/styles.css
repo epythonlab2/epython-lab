@@ -32,6 +32,9 @@ body::-webkit-scrollbar {
     z-index: 50;
   }
 }
+.transition-width {
+  transition: width 0.3s ease;
+}
 
 /* Scrollbar styles for WebKit browsers */
 #sidebar::-webkit-scrollbar {
@@ -456,4 +459,20 @@ pre[class*="language-"] {
   border-left: 24px solid #fff;
   border-top: 14px solid transparent;
   border-bottom: 14px solid transparent;
+}
+
+/* Search bar style */
+mark.custom-highlight {
+  background-color: #34d399; /* Tailwind green-400 */
+  color: white;
+  padding: 0.1rem 0.25rem;
+  border-radius: 0.25rem;
+  font-weight: 600;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+@media (prefers-color-scheme: dark) {
+  mark.custom-highlight {
+    background-color: #b45309; /* Default Tailwind yellow-700 */
+  }
 }
