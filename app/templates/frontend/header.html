@@ -162,7 +162,7 @@
         const topicLi = document.createElement("li");
         topicLi.className = "px-4 py-2 font-semibold text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-900 cursor-pointer transition";
         topicLi.innerHTML = `📁 ${highlightMatch(topic.name, query)}`;
-        topicLi.onclick = () => window.location.href = `/${topic.slug}`;
+        //<!-- topicLi.onclick = () => window.location.href = `/${topic.slug}`; -->
         dropdownElement.appendChild(topicLi);
   
         topic.subtopics.forEach(sub => {
