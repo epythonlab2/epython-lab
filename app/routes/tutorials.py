@@ -284,6 +284,52 @@ def get_subtopic_content(topic_slug, subtopic_slug):
         "next_subtopic_slug": next_subtopic.slug if next_subtopic else None
     }), 200
 
+@bp.route('/search')
+def search():
+    query = request.args.get('q', '').strip().lower()
+    if not query:
+        return jsonify([])
+
+    results = []
+
+    # 1. Match topics by title
+    matched_topics = Topic.query.filter(Topic.title.ilike(f'%{query}%')).all()
+    for topic in matched_topics:
+        # Include the topic itself
+        results.append({
+            "type": "topic",
+            "id": topic.id,
+            "name": topic.title,
+            "slug": topic.slug
+        })
+        # Include all published subtopics under the matched topic
+        for sub in topic.subtopics:
+            if sub.status == "published":
+                results.append({
+                    "type": "subtopic",
+                    "id": sub.id,
+                    "name": sub.title,
+                    "subtopic_slug": sub.slug,
+                    "topic_id": topic.id,
+                    "topic_name": topic.title,
+                    "topic_slug": topic.slug
+                })
+
+    # 2. Match subtopics independently
+    matched_subtopics = SubTopic.query.filter(SubTopic.title.ilike(f'%{query}%')).all()
+    for sub in matched_subtopics:
+        if sub.status == "published":
+            results.append({
+                "type": "subtopic",
+                "id": sub.id,
+                "name": sub.title,
+                "subtopic_slug": sub.slug,
+                "topic_id": sub.topic.id,
+                "topic_name": sub.topic.title,
+                "topic_slug": sub.topic.slug
+            })
+
+    return jsonify(results), 200
 
 
 # ----------------------------------------
