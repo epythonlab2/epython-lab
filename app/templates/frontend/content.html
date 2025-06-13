@@ -1,5 +1,5 @@
 {% extends "/frontend/base.html" %}
-{% block title %}Python Introduction{% endblock %}
+{% block title %}{{subtopic_slug}}{% endblock %}
 
 {% block content %}
 
@@ -11,7 +11,7 @@
 </section>
 
 <!-- Progress Bar Section -->
-<section class="mt-4">
+<section class="mt-4 pl-3">
   <div class="w-full bg-gray-200 rounded-full h-4 mb-4">
     <div id="progress-bar" class="bg-green-600 h-4 rounded-full" style="width: 0%;"></div>
   </div>
@@ -20,7 +20,7 @@
 
 <!-- Tutorial Content -->
 <section class="mt-4">
-  <div class="bg-white bg-gradient-to-b from-white to-gray-100 dark:from-gray-900 dark:to-gray-800 p-6 text-gray-900 dark:text-gray-100">
+  <div class="bg-white bg-gradient-to-b from-white to-gray-100 dark:from-gray-900 dark:to-gray-800 p-3 text-gray-900 dark:text-gray-100">
     <h1 id="tutorial-title" class="text-4xl font-bold mb-4"></h1>
     <div id="tutorial-content" class="prose dark:prose-invert">
       <div class="dynamic-code quill-content" id="dynamic-code-0" contenteditable="false">Loading...</div>

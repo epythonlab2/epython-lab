@@ -31,6 +31,7 @@ body::-webkit-scrollbar {
     width: 100%;
     z-index: 50;
   }
+  
 }
 .transition-width {
   transition: width 0.3s ease;
@@ -116,13 +117,11 @@ body::-webkit-scrollbar {
   /* Optional basic rich text styling */
     
   .quill-content ul{
-    padding-left: 1.5em;
     list-style-type: disc;
     padding-left: 1.5rem; /* equivalent to Tailwind's pl-6 */
     margin-bottom: 1rem;
   }
   .quill-content ol {
-    padding-left: 1.5em;
     list-style-type: decimal;
     padding-left: 1.5rem; /* equivalent to Tailwind's pl-6 */
     margin-bottom: 1rem;
