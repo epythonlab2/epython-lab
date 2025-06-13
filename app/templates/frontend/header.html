@@ -5,28 +5,41 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center h-16 relative">
   
-        <!-- ========== Brand Logo ========== -->
-        <a href="/" class="flex items-center space-x-2">
-          <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <!-- Gradient Fill -->
-              <linearGradient id="grad1" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stop-color="#00C896"/>
-                <stop offset="100%" stop-color="#00FFA3"/>
-              </linearGradient>
-              <!-- Drop Shadow -->
-              <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-                <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#00FFA3" flood-opacity="0.4"/>
-              </filter>
-            </defs>
-            <!-- Logo Graphic -->
-            <g filter="url(#shadow)">
-              <path d="M20 10 C40 10, 40 50, 20 50 C0 50, 0 30, 20 30 C40 30, 40 10, 20 10 Z M20 20 C30 20, 30 40, 20 40 C10 40, 10 30, 20 30 Z" fill="url(#grad1)"/>
-              <path d="M5 15 Q3 25 5 35" stroke="#00C896" stroke-width="3" fill="none"/>
-              <path d="M35 15 Q37 25 35 35" stroke="#00C896" stroke-width="3" fill="none"/>
-            </g>
-          </svg>
-        </a>
+        <!-- ========== Brand Section ========== -->
+      <a href="/" class="flex items-center space-x-2 group" aria-label="Epython Lab Home">
+        <!-- Logo SVG -->
+        <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg" class="transition-transform duration-300 group-hover:rotate-3">
+          <defs>
+            <!-- Gradient Fill Definition -->
+            <linearGradient id="grad1" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#00C896" />
+              <stop offset="100%" stop-color="#00FFA3" />
+            </linearGradient>
+
+            <!-- Drop Shadow Filter -->
+            <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#00FFA3" flood-opacity="0.4" />
+            </filter>
+          </defs>
+
+          <!-- Logo Paths -->
+          <g filter="url(#shadow)">
+            <!-- Main Logo Shape -->
+            <path d="M20 10 C40 10, 40 50, 20 50 C0 50, 0 30, 20 30 C40 30, 40 10, 20 10 Z 
+                    M20 20 C30 20, 30 40, 20 40 C10 40, 10 30, 20 30 Z" fill="url(#grad1)" />
+
+            <!-- Decorative Side Paths -->
+            <path d="M5 15 Q3 25 5 35" stroke="#00C896" stroke-width="3" fill="none" />
+            <path d="M35 15 Q37 25 35 35" stroke="#00C896" stroke-width="3" fill="none" />
+          </g>
+        </svg>
+
+        <!-- Brand Name (Visible on sm and larger screens) -->
+        <span class="hidden sm:inline text-xl font-bold text-green-700 dark:text-green-400 tracking-wide">
+          EpythonLab
+        </span>
+      </a>
+
   
         <!-- ========== Desktop Navigation & Search ========== -->
         <div class="hidden md:flex items-center space-x-4">
@@ -112,112 +125,315 @@
   <!-- JavaScript: Search & Interaction Functions -->
   <!-- ============================================ -->
   <script>
-    // DOM Elements
-    const desktopSearchInput = document.getElementById("searchInput");
-    const desktopResultsDropdown = document.getElementById("desktopResultsDropdown");
-    const mobileSearchInput = document.querySelector("#mobileSearchOverlay input[type='text']");
-    const mobileResultsDropdown = document.getElementById("mobileResultsDropdown");
+    /**
+     * Configuration for search elements
+     */
+    const searchConfig = {
+      desktop: {
+        input: document.getElementById("searchInput"),
+        dropdown: document.getElementById("desktopResultsDropdown"),
+      },
+      mobile: {
+        input: document.querySelector("#mobileSearchOverlay input[type='text']"),
+        dropdown: document.getElementById("mobileResultsDropdown"),
+      },
+    };
   
-    // Utility: Highlight matching query terms
+    // State variables
+    let currentFocusIndex = -1;
+    let activeDropdown = null;
+  
+    // Constants for localStorage history
+    const HISTORY_KEY = "search_history";
+    const MAX_HISTORY = 5;
+  
+    /**
+     * Highlight matching part of text using <mark> tag
+     * @param {string} text - original text
+     * @param {string} query - search term
+     * @returns {string} HTML string with highlighted matches
+     */
     function highlightMatch(text, query) {
       const safeQuery = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const regex = new RegExp(`(${safeQuery})`, "gi");
       return text.replace(regex, '<mark class="custom-highlight">$1</mark>');
     }
   
-    // Render fetched results into dropdown list
-    function renderResults(results, dropdownElement, query) {
-      dropdownElement.innerHTML = "";
+    /**
+     * Render search results into dropdown
+     * @param {Array} results - list of result objects
+     * @param {HTMLElement} dropdown - dropdown element to render into
+     * @param {string} query - current search query
+     */
+    function renderResults(results, dropdown, query) {
+      dropdown.innerHTML = "";
+      currentFocusIndex = -1;
+      activeDropdown = dropdown;
   
       if (results.length === 0) {
         const li = document.createElement("li");
         li.className = "px-4 py-2 text-sm text-gray-500";
         li.textContent = "No results found.";
-        dropdownElement.appendChild(li);
-        dropdownElement.classList.remove("hidden");
+        dropdown.appendChild(li);
+        dropdown.classList.remove("hidden");
         return;
       }
   
       const topicsMap = new Map();
   
-      results.forEach(result => {
-        if (result.type === "topic") {
-          topicsMap.set(result.id, { ...result, subtopics: [] });
-        } else if (result.type === "subtopic") {
-          if (!topicsMap.has(result.topic_id)) {
-            topicsMap.set(result.topic_id, {
-              id: result.topic_id,
+      results.forEach(item => {
+        if (item.type === "topic") {
+          topicsMap.set(item.id, { ...item, subtopics: [] });
+        } else if (item.type === "subtopic") {
+          if (!topicsMap.has(item.topic_id)) {
+            topicsMap.set(item.topic_id, {
+              id: item.topic_id,
               type: "topic",
-              name: result.topic_name,
-              slug: result.topic_slug,
+              name: item.topic_name,
+              slug: item.topic_slug,
               subtopics: [],
             });
           }
-          topicsMap.get(result.topic_id).subtopics.push(result);
+          topicsMap.get(item.topic_id).subtopics.push(item);
         }
       });
   
-      // Render topics and subtopics
       for (const [, topic] of topicsMap) {
         const topicLi = document.createElement("li");
         topicLi.className = "px-4 py-2 font-semibold text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-900 cursor-pointer transition";
         topicLi.innerHTML = `📁 ${highlightMatch(topic.name, query)}`;
-        //<!-- topicLi.onclick = () => window.location.href = `/${topic.slug}`; -->
-        dropdownElement.appendChild(topicLi);
+        dropdown.appendChild(topicLi);
   
         topic.subtopics.forEach(sub => {
           const subLi = document.createElement("li");
           subLi.className = "px-4 py-2 text-sm pl-6 hover:bg-green-50 dark:hover:bg-green-800 cursor-pointer transition";
           subLi.innerHTML = `📘 ${highlightMatch(sub.name, query)}`;
-          subLi.onclick = () => window.location.href = `/python/${sub.subtopic_slug}`;
-          dropdownElement.appendChild(subLi);
+          subLi.onclick = () => {
+            // Save the clicked subtopic name or slug as history
+            saveSearchHistory(sub.name); 
+          
+            window.location.href = `/python/${sub.subtopic_slug}`;
+          };
+          
+          dropdown.appendChild(subLi);
         });
       }
   
-      dropdownElement.classList.remove("hidden");
+      dropdown.classList.remove("hidden");
     }
   
-    // Perform search request to backend API
-    async function performSearch(query, dropdownElement) {
+    /**
+     * Get saved search history from localStorage
+     * @returns {string[]}
+     */
+    function getSearchHistory() {
+      const stored = localStorage.getItem(HISTORY_KEY);
+      return stored ? JSON.parse(stored) : [];
+    }
+  
+    /**
+     * Save query to search history in localStorage
+     * @param {string} query
+     */
+    function saveSearchHistory(query) {
+      query = query.trim().toLowerCase();
+      if (!query) return;
+  
+      let history = getSearchHistory();
+  
+      // Remove duplicates
+      history = history.filter(q => q !== query);
+  
+      // Add newest to front
+      history.unshift(query);
+  
+      // Limit history size
+      if (history.length > MAX_HISTORY) {
+        history = history.slice(0, MAX_HISTORY);
+      }
+  
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+    }
+  
+    /**
+     * Clear search history from localStorage
+     */
+    function clearSearchHistory() {
+      localStorage.removeItem(HISTORY_KEY);
+      if (searchConfig.desktop.input) showSearchHistory(searchConfig.desktop.input, searchConfig.desktop.dropdown);
+      if (searchConfig.mobile.input) showSearchHistory(searchConfig.mobile.input, searchConfig.mobile.dropdown);
+    }
+  
+    /**
+     * Render recent search history below the input box
+     * @param {HTMLElement} input - search input field
+     * @param {HTMLElement} dropdown - dropdown container
+     */
+    function showSearchHistory(input, dropdown) {
+      const history = getSearchHistory();
+      dropdown.innerHTML = "";
+      currentFocusIndex = -1;
+      activeDropdown = dropdown;
+  
+      if (history.length === 0) {
+        dropdown.classList.add("hidden");
+        return;
+      }
+  
+      // Title for history
+      const titleLi = document.createElement("li");
+      titleLi.className = "px-4 py-1 text-xs uppercase text-gray-500";
+      titleLi.textContent = "Recent Searches";
+      dropdown.appendChild(titleLi);
+  
+      // Add history items
+      history.forEach(query => {
+        const li = document.createElement("li");
+        li.className = "px-4 py-2 cursor-pointer hover:bg-green-100 dark:hover:bg-green-900 text-sm";
+        li.textContent = `🔍 ${query}`;
+        li.onclick = () => {
+          input.value = query;
+          performSearch(query, dropdown);
+        };
+        dropdown.appendChild(li);
+      });
+  
+      // Add clear history option
+      const clearLi = document.createElement("li");
+      clearLi.className = "px-4 py-2 text-xs text-red-600 cursor-pointer hover:underline";
+      clearLi.textContent = "Clear History";
+      clearLi.onclick = clearSearchHistory;
+      dropdown.appendChild(clearLi);
+  
+      dropdown.classList.remove("hidden");
+    }
+  
+    /**
+     * Perform async search and render results
+     * @param {string} query - search input value
+     * @param {HTMLElement} dropdown - dropdown to display results
+     */
+    async function performSearch(query, dropdown) {
       const trimmedQuery = query.trim().toLowerCase();
       if (!trimmedQuery) {
-        dropdownElement.classList.add("hidden");
+        showSearchHistory(searchConfig.desktop.input, searchConfig.desktop.dropdown);
+        showSearchHistory(searchConfig.mobile.input, searchConfig.mobile.dropdown);
         return;
       }
   
       try {
-        const response = await fetch(`/api/v1/topics/search?q=${encodeURIComponent(trimmedQuery)}`);
-        if (!response.ok) throw new Error("Network response was not ok");
-        const results = await response.json();
-        renderResults(results, dropdownElement, trimmedQuery);
-      } catch (error) {
-        console.error("Search error:", error);
-        dropdownElement.classList.add("hidden");
+        const res = await fetch(`/api/v1/topics/search?q=${encodeURIComponent(trimmedQuery)}`);
+        if (!res.ok) throw new Error("Fetch error");
+        const data = await res.json();
+  
+        // Save to history only when there are results
+        //if (data && data.length > 0) saveSearchHistory(trimmedQuery);
+  
+        renderResults(data, dropdown, trimmedQuery);
+      } catch (err) {
+        console.error("Search failed:", err);
+        dropdown.classList.add("hidden");
       }
     }
   
-    // Event: Desktop Search Input
-    desktopSearchInput.addEventListener("input", function () {
-      performSearch(this.value, desktopResultsDropdown);
-    });
+    /**
+     * Move focus up/down the result list
+     * @param {string} direction - "up" or "down"
+     */
+    function moveFocus(direction) {
+      if (!activeDropdown) return;
+      const items = Array.from(activeDropdown.querySelectorAll("li"));
+      if (items.length === 0) return;
   
-    // Event: Mobile Search Input
-    if (mobileSearchInput && mobileResultsDropdown) {
-      mobileSearchInput.addEventListener("input", function () {
-        performSearch(this.value, mobileResultsDropdown);
+      // Remove previous highlight
+      items.forEach(item => item.classList.remove("bg-green-100", "dark:bg-green-800"));
+  
+      // Update index
+      currentFocusIndex = direction === "down"
+        ? (currentFocusIndex + 1) % items.length
+        : (currentFocusIndex - 1 + items.length) % items.length;
+  
+      // Highlight current item
+      const focusedItem = items[currentFocusIndex];
+      focusedItem.scrollIntoView({ block: "nearest" });
+      focusedItem.classList.add("bg-green-100", "dark:bg-green-800");
+    }
+  
+    /**
+     * Simulate click on the currently focused item
+     */
+    function selectFocusedItem() {
+      if (!activeDropdown) return;
+      const items = Array.from(activeDropdown.querySelectorAll("li"));
+      if (currentFocusIndex >= 0 && currentFocusIndex < items.length) {
+        items[currentFocusIndex].click();
+      }
+    }
+  
+    /**
+     * Handle keyboard navigation for search dropdown
+     * @param {KeyboardEvent} e
+     */
+    function handleKeyboardNavigation(e) {
+      if (!activeDropdown || activeDropdown.classList.contains("hidden")) return;
+  
+      switch (e.key) {
+        case "ArrowDown":
+          e.preventDefault();
+          moveFocus("down");
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          moveFocus("up");
+          break;
+        case "Enter":
+          e.preventDefault();
+          selectFocusedItem();
+          break;
+        case "Escape":
+          e.preventDefault();
+          activeDropdown.classList.add("hidden");
+          currentFocusIndex = -1;
+          break;
+      }
+    }
+  
+    /**
+     * Attach event listeners to input and dropdown
+     * @param {HTMLElement} input - search input field
+     * @param {HTMLElement} dropdown - dropdown to display results
+     */
+    function setupSearchHandlers(input, dropdown) {
+      if (!input || !dropdown) return;
+  
+      input.addEventListener("input", () => {
+        if (!input.value.trim()) {
+          showSearchHistory(input, dropdown);
+        } else {
+          performSearch(input.value, dropdown);
+        }
+      });
+  
+      input.addEventListener("focus", () => {
+        if (!input.value.trim()) {
+          showSearchHistory(input, dropdown);
+        }
+      });
+  
+      input.addEventListener("keydown", handleKeyboardNavigation);
+  
+      // Close dropdown if clicking outside
+      document.addEventListener("click", e => {
+        if (e.target !== input && !dropdown.contains(e.target)) {
+          dropdown.classList.add("hidden");
+          currentFocusIndex = -1;
+        }
       });
     }
   
-    // Hide dropdowns when clicking outside
-    document.addEventListener("click", function (e) {
-      if (!desktopSearchInput.contains(e.target) && !desktopResultsDropdown.contains(e.target)) {
-        desktopResultsDropdown.classList.add("hidden");
-      }
-      if (mobileSearchInput && mobileResultsDropdown) {
-        if (!mobileSearchInput.contains(e.target) && !mobileResultsDropdown.contains(e.target)) {
-          mobileResultsDropdown.classList.add("hidden");
-        }
-      }
-    });
+    // Initialize handlers for desktop and mobile inputs
+    setupSearchHandlers(searchConfig.desktop.input, searchConfig.desktop.dropdown);
+    setupSearchHandlers(searchConfig.mobile.input, searchConfig.mobile.dropdown);
   </script>
+  
   
