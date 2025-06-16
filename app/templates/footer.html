@@ -1,4 +1,23 @@
-<footer class="bottom-0 left-0 w-full bg-gray-100 dark:bg-gray-900 text-center p-6 text-sm text-gray-500 dark:text-gray-400 mt-8">
-    <p>&copy; {{ current_year }} Epython Lab. All rights reserved.</p>
-</footer>
+<footer class="bottom-0 left-0 w-full text-center p-6 text-sm mt-8 shadow-inner transition-all duration-300"
+        style="background-color: var(--sidebar-bg); color: var(--sidebar-muted);">
   
+  <div class="flex justify-center items-center space-x-6 mb-4 text-[color:var(--sidebar-text)]">
+    <a href="https://github.com/epythonlab" target="_blank" class="hover:text-[color:var(--sidebar-title)] transition-colors duration-200">
+      <i data-lucide="github" class="w-5 h-5"></i>
+    </a>
+    <!-- <a href="https://twitter.com/epythonlab" target="_blank" class="hover:text-blue-500 transition-colors duration-200">
+      <i data-lucide="twitter" class="w-5 h-5"></i>
+    </a> -->
+    <a href="https://t.me/epythonlab" target="_blank" class="hover:text-sky-600 transition-colors duration-200">
+      <i data-lucide="send" class="w-5 h-5"></i>
+    </a>
+    <a href="https://youtube.com/@epythonlab" target="_blank" class="hover:text-red-600 transition-colors duration-200">
+      <i data-lucide="youtube" class="w-5 h-5"></i>
+    </a>
+    <!-- <a href="mailto:support@epythonlab.com" class="hover:text-green-600 transition-colors duration-200">
+      <i data-lucide="mail" class="w-5 h-5"></i>
+    </a> -->
+  </div>
+
+  <p class="text-[color:var(--sidebar-muted)]">&copy; {{ current_year }} Epython Lab. All rights reserved.</p>
+</footer>
