@@ -30,7 +30,8 @@
     </script>
 
     <!-- ✅ Load Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tailwind.css') }}">
+
 
     <!-- Fonts and Custom Styles -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
@@ -47,7 +48,7 @@
 
     <!-- Alpine.js -->
     <script src="https://unpkg.com/alpinejs" defer></script>
-
+    <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Utility Script -->
     <script src="{{ url_for('static', filename='js/utils.js') }}" defer></script>
 
@@ -131,5 +132,12 @@
 
     {% include "/frontend/newsletter.html" %}
     {% include "footer.html" %}
+        <!-- Lucide Icon Rendering -->
+  <script>
+    if (window.lucide) {
+      window.lucide.createIcons();
+    }
+  </script>
+
   </body>
 </html>

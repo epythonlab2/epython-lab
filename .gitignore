@@ -6,4 +6,6 @@ tailwind.config.js
 *.json
 .pytest_cache/
 input.css
-output.cssS
+output.css
+db.sqlite3
+node_modules/
