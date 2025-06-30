@@ -39,13 +39,12 @@
         EpythonLab
       </span>
     </a>
-
-
+    
       <!-- ========== Desktop Navigation & Search ========== -->
-      <div class="hidden md:flex items-center space-x-4">
+      <div class="hidden md:flex items-center justify-between space-x-4 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
 
-        <!-- ----- Search Input with Icon ----- -->
-        <div class="relative">
+        <!-- Left side: Search Input with Icon -->
+        <div class="relative flex-grow max-w-md">
           <!-- Search Icon -->
           <div class="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-300 pointer-events-none">
             <svg class="h-5 w-5 mt-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -59,28 +58,45 @@
             type="text"
             placeholder="Search..."
             autocomplete="off"
-            class="mt-1 focus:w-[28rem] pl-10 px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 text-black dark:text-white shadow-inner focus:outline-none focus:ring-2 focus:ring-green-300 transition-width focus:w-96"
+            class="mt-1
+                  w-full
+                  pl-10 px-2 py-1
+                  rounded
+                  bg-gray-100 dark:bg-gray-800
+                  text-black dark:text-white
+                  shadow-inner
+                  focus:outline-none
+                  focus:ring-2 focus:ring-green-300
+                  transition-all duration-300
+                  focus:w-64 md:focus:w-72"
           >
 
           <!-- Dropdown: Search Results -->
           <ul
             id="desktopResultsDropdown"
-            class="absolute top-full w-[28rem] right-0 bg-white dark:bg-gray-800 text-black dark:text-white border border-gray-200 dark:border-gray-700 rounded shadow mt-1 hidden z-50 max-h-60 overflow-y-auto"
+            class="absolute top-full w-full right-0 bg-white dark:bg-gray-800 text-black dark:text-white border border-gray-200 dark:border-gray-700 rounded shadow mt-1 hidden z-50 max-h-60 overflow-y-auto"
           >
             <!-- Results populated via JS -->
           </ul>
         </div>
 
-        <!-- Quizzes Link -->
-        <a href="#quiz-preview" class="text-sm bg-green-600 text-white px-4 py-1 rounded shadow hover:bg-green-700">Quizzes</a>
+        <!-- Right side: Action Buttons -->
+        <div class="flex items-center space-x-4 flex-shrink-0">
+          <!-- Quizzes Link -->
+          <a href="#quiz-preview" class="text-sm bg-green-600 text-white px-4 py-1 rounded shadow hover:bg-green-700">
+            Quizzes
+          </a>
 
-        <!-- Dark Mode Toggle -->
-        <button onclick="toggleDarkMode()" id="theme-toggle" class="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white px-2 py-1 rounded shadow hover:opacity-80">
-          <span id="darkModeIconDesktop">🌙</span>
-        </button>
+          <!-- Dark Mode Toggle -->
+          <button onclick="toggleDarkMode()" id="theme-toggle" class="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white px-2 py-1 rounded shadow hover:opacity-80">
+            <span id="darkModeIconDesktop">🌙</span>
+          </button>
 
-        <!-- Sign In Button -->
-        <a href="/signin" class="text-sm bg-blue-600 text-white px-4 py-1 rounded shadow hover:bg-blue-700">Sign In</a>
+          <!-- Sign In Button -->
+          <a href="/signin" class="text-sm bg-blue-600 text-white px-4 py-1 rounded shadow hover:bg-blue-700">
+            Sign In
+          </a>
+        </div>
       </div>
 
       <!-- ========== Mobile Navigation Buttons ========== -->
@@ -117,7 +133,7 @@
           <!-- Results populated via JS -->
         </ul>
       </div>
-    </div>
+
   </div>
 </header>
 
@@ -436,8 +452,6 @@
     setupSearchHandlers(searchConfig.desktop.input, searchConfig.desktop.dropdown);
     setupSearchHandlers(searchConfig.mobile.input, searchConfig.mobile.dropdown);
 
-
-    
   </script>
   
   
