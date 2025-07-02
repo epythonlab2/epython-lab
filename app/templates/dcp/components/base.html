@@ -6,7 +6,9 @@
     <title>{% block title %}Admin Dashboard{% endblock %}</title>
 
     <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- ✅ Load Tailwind CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tailwind.css') }}">
+
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
 
     <!-- Quill Editor CSS & JS -->
