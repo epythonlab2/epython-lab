@@ -80,8 +80,13 @@
 
 <input type="hidden" id="topic-id" value="{{ topic_id }}">
 <input type="hidden" id="subtopic-id" value="{{ subtopic_id if subtopic_id else '' }}">
+ <!-- Quill Editor -->
+ <script src="{{ url_for('static', filename='js/quill-content.js') }}"></script>
+ <script src="/static/js/utils.js"></script>
+ 
+ <script type="module">
+  import { fetchSubtopicData, saveSubtopic } from '/static/api/content-api.js';
 
-<script>
   document.addEventListener('DOMContentLoaded', () => {
     const topicId      = document.getElementById('topic-id').value;
     const subtopicId   = document.getElementById('subtopic-id').value;
@@ -89,34 +94,20 @@
     const contentInput = document.getElementById('content-input');
     const messageBox   = document.getElementById('message-box');
 
-       // If editing, fetch existing subtopic data
+    // If editing, fetch existing subtopic data
     if (subtopicId) {
-      fetch(`/api/v1/topics/subtopic/${subtopicId}`)
-        .then(res => {
-          if (!res.ok) throw new Error('Failed to load content');
-          return res.json();
-        })
+      fetchSubtopicData(subtopicId)
         .then(data => {
           titleInput.value     = data.title || '';
           quill.root.innerHTML = data.content || '';
-          console.log('Fetched subtopic title:', data.title);
+          //console.log('Fetched subtopic title:', data.title);
         })
         .catch(err => {
           showMessage(`Error: ${err.message}`, 'red');
         });
     }
 
-    // Display messages
-    function showMessage(msg, color) {
-      const colorClasses = {
-        red:   'bg-red-100 text-red-800',
-        green: 'bg-green-100 text-green-800'
-      };
-      messageBox.textContent = msg;
-      messageBox.className = `block mb-6 rounded-md p-4 text-sm ${colorClasses[color] || ''}`;
-    }
-
-    // Handle Save/Pubish actions
+    // Handle Save/Publish actions
     document.querySelectorAll('.save-btn[data-status]').forEach(button => {
       button.addEventListener('click', async () => {
         contentInput.value = quill.root.innerHTML.trim();
@@ -129,46 +120,20 @@
           return;
         }
 
-        const payload = { title, content, status };
+        const payload = { title, content, status, topicId };
 
         try {
-          let response;
-          if (subtopicId) {
-            // Update existing subtopic
-            response = await fetch(
-              `/api/v1/topics/subtopic/${subtopicId}`,
-              {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-              }
-            );
-          } else {
-            // Create new subtopic
-            response = await fetch(
-              `/api/v1/topics/${topicId}/subtopics`,
-              {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-              }
-            );
-          }
+          const result = await saveSubtopic(subtopicId, payload);
+          showMessage(
+            subtopicId
+              ? 'Content updated successfully.'
+              : `Subtopic ${status === 'draft' ? 'saved as draft' : 'published'} successfully.`,
+            'green'
+          );
 
-          const result = await response.json();
-          if (response.ok) {
-            showMessage(
-              subtopicId
-                ? 'Content updated successfully.'
-                : `Subtopic ${status === 'draft' ? 'saved as draft' : 'published'} successfully.`,
-              'green'
-            );
-            if (!subtopicId) {
-              titleInput.value = '';
-              quill.setContents([]);
-            }
-          } else {
-            throw new Error(result.error || result.message || 'Failed to save content.');
+          if (!subtopicId) {
+            titleInput.value = '';
+            quill.setContents([]);
           }
         } catch (err) {
           console.error(err);
@@ -178,4 +143,6 @@
     });
   });
 </script>
+
+
 {% endblock %}

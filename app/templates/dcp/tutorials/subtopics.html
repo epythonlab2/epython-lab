@@ -32,97 +32,94 @@
 <!-- Hidden input to make topic_id available to JavaScript -->
 <input type="hidden" id="topic-id" value="{{ topic_id }}">
 
-<script>
+<script src="/static/js/utils.js"></script>
+
+<script type="module">
+
+  import { fetchTopicById, deleteSubtopicById } from '/static/api/content-api.js';
+  
+
   document.addEventListener("DOMContentLoaded", loadTopic);
 
-  function escapeHtml(unsafe) {
-    return unsafe.replace(/&/g, "&amp;")
-                 .replace(/</g, "&lt;")
-                 .replace(/>/g, "&gt;")
-                 .replace(/"/g, "&quot;")
-                 .replace(/'/g, "&#039;");
-  }
-  
   async function loadTopic() {
-    const topicId = document.getElementById("topic-id").value;
+    const topicId = document.getElementById("topic-id")?.value;
     const titleEl = document.getElementById("topic-title");
     const subtopicsEl = document.getElementById("subtopics-list");
-
+  
     if (!topicId) {
       titleEl.textContent = "Topic ID not provided.";
       return;
     }
-
+  
     try {
-      const response = await fetch(`/api/v1/topics/${topicId}`);
-      if (!response.ok) throw new Error("Failed to load topic");
-
-      const topic = await response.json();
+      const topic = await fetchTopicById(topicId);
       titleEl.textContent = `Manage Subtopics for: ${topic.title}`;
       document.title = `Manage Subtopics - ${topic.title}`;
-
-      if (topic.subtopics.length === 0) {
+  
+      if (!topic.subtopics.length) {
         subtopicsEl.innerHTML = `<p class="text-sm text-gray-500 text-center">No subtopics found for this topic.</p>`;
         return;
       }
-
+  
       subtopicsEl.innerHTML = "";
       topic.subtopics.forEach((sub, index) => {
         subtopicsEl.innerHTML += `
           <div class="p-4 border border-gray-200 rounded-xl shadow-sm bg-gray-50">
             <div class="flex justify-between items-start">
               <div>
-                <h3 class="text-base font-semibold text-gray-900">${sub.title}</h3>
+                <h3 class="text-base font-semibold text-gray-900">${escapeHtml(sub.title)}</h3>
                 <p class="text-xs text-gray-500">Status: ${sub.status.charAt(0).toUpperCase() + sub.status.slice(1)}</p>
               </div>
               <div class="flex gap-3 text-sm">
                 <button onclick="editSubtopic(${sub.id})" class="text-blue-600 hover:underline">Edit</button>
-                <button onclick="deleteSubtopic(${sub.id})" class="text-red-600 hover:underline">Delete</button>
+                <button onclick="handleDelete(${sub.id})" class="text-red-600 hover:underline">Delete</button>
               </div>
             </div>
             <details class="mt-2">
               <summary class="text-sm text-gray-700 cursor-pointer">View content & code</summary>
               <div class="mt-2 text-sm text-gray-800">
-                 <strong class="block mb-1 text-gray-700">Content:</strong>
-                 <div class="dynamic-code quill-content" id="dynamic-code-${index}">
-                   ${sub.content}
-                 </div>
+                <strong class="block mb-1 text-gray-700">Content:</strong>
+                <div class="dynamic-code quill-content" id="dynamic-code-${index}">
+                  ${sub.content}
+                </div>
               </div>
             </details>
           </div>
         `;
       });
-      
-      // Then highlight each dynamically inserted code block:
-      topic.subtopics.forEach((sub, index) => {
-        const codeBlocks = document.querySelectorAll(`#dynamic-code-${index} pre code`);
-        codeBlocks.forEach(block => Prism.highlightElement(block));
-      });
-      
-
-    } catch (error) {
+  
+     // Then highlight each dynamically inserted code block:
+     topic.subtopics.forEach((sub, index) => {
+      const codeBlocks = document.querySelectorAll(`#dynamic-code-${index} pre code`);
+      codeBlocks.forEach(block => Prism.highlightElement(block));
+    });
+    
+  
+    } catch (err) {
       titleEl.textContent = "Failed to load topic data.";
-      subtopicsEl.innerHTML = `<p class="text-sm text-red-600 text-center">Error: ${error.message}</p>`;
+      subtopicsEl.innerHTML = `<p class="text-sm text-red-600 text-center">Error: ${err.message}</p>`;
     }
   }
-
-  async function deleteSubtopic(id) {
-    if (!confirm("Are you sure you want to delete this subtopic?")) return;
-
-    const response = await fetch(`/api/v1/topics/subtopic/${id}`, { method: 'DELETE' });
-
-
-    if (response.ok) {
-      loadTopic();
-    } else {
-      alert("Failed to delete subtopic.");
-    }
+  
+// Handle deletion
+window.handleDelete = async function(id) {
+  if (!confirm("Are you sure you want to delete this subtopic?")) return;
+  try {
+    await deleteSubtopicById(id);
+    loadTopic();
+    showMessage("Subtopic deleted successfully.", "success");
+  } catch (err) {
+    showMessage("Failed to delete subtopic.", "error");
   }
+};
 
-  function editSubtopic(id) {
+// Edit subtopic redirect
+window.editSubtopic = function(id) {
   const topicId = document.getElementById("topic-id").value;
   window.location.href = `/dcp/admin/subtopics/create?topic_id=${topicId}&subtopic_id=${id}`;
-}
+};
 
-</script>
+
+  </script>
+
 {% endblock %}

@@ -6,7 +6,7 @@ from flask_swagger_ui import get_swaggerui_blueprint
 db = SQLAlchemy()
 
 def create_app():
-    app = Flask(__name__)
+    app = Flask(__name__, static_url_path='/static')
     app.config.from_object("config.Config")
 
     # Initialize extensions
