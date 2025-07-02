@@ -10,21 +10,32 @@
   </div>
 </section>
 
-<!-- Progress Bar Section -->
+<!-- Progress Bar Section
 <section class="mt-4 pl-3">
   <div class="w-full bg-gray-200 rounded-full h-4 mb-4">
     <div id="progress-bar" class="bg-green-600 h-4 rounded-full" style="width: 0%;"></div>
   </div>
   <p id="progress-text" class="text-sm text-gray-600 mb-6">Progress: 0%</p>
-</section>
+</section> -->
 
 <!-- Tutorial Content -->
 <section class="mt-4">
-  <div class="bg-white bg-gradient-to-b from-white to-gray-100 dark:from-gray-900 dark:to-gray-800 p-3 text-gray-900 dark:text-gray-100">
-    <h1 id="tutorial-title" class="text-4xl font-bold mb-4"></h1>
-    <div id="tutorial-content" class="prose dark:prose-invert">
-      <div class="dynamic-code quill-content" id="dynamic-code-0" contenteditable="false">Loading...</div>
+  <div
+  class="bg-gray-50 bg-gradient-to-b from-white to-gray-100 dark:from-gray-900 dark:to-gray-800 p-3 text-gray-900 dark:text-gray-100"
+>
+  <h1 id="tutorial-title" class="text-4xl font-bold mb-4"></h1>
+
+  <div id="tutorial-content" class="prose dark:prose-invert">
+    <div
+      class="dynamic-code quill-content"
+      id="dynamic-code-0"
+      contenteditable="false"
+      aria-live="polite"
+      aria-busy="true"
+    >
+      Loading...
     </div>
+  </div>
     
     <hr class="border-t border-gray-300 dark:border-gray-700 mt-8 mb-6" />
     
@@ -45,84 +56,18 @@
 </section>
 
 
-<!-- Main Script -->
+<!-- Insert Flask variables for use in JS -->
 <script>
-  document.addEventListener("DOMContentLoaded", async () => {
-    const topicSlug = "{{ topic_slug }}";
-    const subtopicSlug = "{{ subtopic_slug }}";
-
-    // Track local progress
-    let storedProgress = {};
-    try {
-      storedProgress = JSON.parse(localStorage.getItem("progress")) || {};
-      if (!storedProgress[topicSlug]) storedProgress[topicSlug] = [];
-      if (!storedProgress[topicSlug].includes(subtopicSlug)) {
-        storedProgress[topicSlug].push(subtopicSlug);
-        localStorage.setItem("progress", JSON.stringify(storedProgress));
-      }
-      localStorage.setItem("lastVisited", JSON.stringify({ topic: topicSlug, subtopic: subtopicSlug }));
-    } catch (e) {
-      console.warn("Progress storage error", e);
-    }
-
-    // Fetch content + navigation info
-    try {
-      const res = await fetch(`/api/v1/topics/${topicSlug}/${subtopicSlug}`);
-      if (!res.ok) throw new Error("Content not found");
-
-      const data = await res.json();
-
-      // Render tutorial
-      document.getElementById("tutorial-title").textContent = data.title;
-      document.getElementById("tutorial-content").innerHTML = `
-        <div class="dynamic-code quill-content" id="dynamic-code-0">${data.content}</div>
-      `;
-      highlightCodeBlocks("dynamic-code-0");
-
-      // Next subtopic link
-      const nextLink = document.getElementById("next-subtopic-link");
-      if (data.next_subtopic_slug) {
-        nextLink.href = `/python/${data.next_subtopic_slug}`;
-        nextLink.textContent = "Continue to Next Lesson →";
-        nextLink.classList.remove("hidden", "cursor-not-allowed", "bg-gray-400", "hover:bg-gray-400");
-      } else {
-        nextLink.textContent = "You’ve completed all lessons";
-        nextLink.href = "#";
-        nextLink.classList.remove("hidden");
-        nextLink.classList.add("cursor-not-allowed", "bg-gray-400", "hover:bg-gray-400");
-      }
-
-      // Progress Calculation
-      if (Array.isArray(data.all_subtopics)) {
-        const total = data.all_subtopics.length;
-        const completed = Object.values(storedProgress).flat();
-        const filtered = completed.filter(slug => data.all_subtopics.includes(slug));
-        const unique = [...new Set(filtered)];
-        const percent = Math.round((unique.length / total) * 100);
-
-        document.getElementById("progress-bar").style.width = `${percent}%`;
-        document.getElementById("progress-text").textContent = `Progress: ${percent}%`;
-      }
-
-    } catch (err) {
-      document.getElementById("tutorial-content").innerHTML = `
-        <p class="text-red-600">Failed to load tutorial content.</p>
-      `;
-      console.error("Error loading content:", err);
-    }
-  });
-
-  function highlightCodeBlocks(containerId) {
-    setTimeout(() => {
-      const container = document.getElementById(containerId);
-      if (!container) return;
-      container.querySelectorAll("pre code").forEach(block => Prism.highlightElement(block));
-    }, 0);
-  }
+  window.FLASK_DATA = {
+    topicSlug: "{{ topic_slug }}",
+    subtopicSlug: "{{ subtopic_slug }}"
+  };
 </script>
+
+<!-- Load your module script -->
+<script type="module" src="{{ url_for('static', filename='api/tutorial.js') }}"></script>
 
 <!-- Video Embed Scripts -->
 <script src="{{ url_for('static', filename='js/video-embed.js') }}" defer></script>
 <script src="{{ url_for('static', filename='js/video-embedInit.js') }}" defer></script>
-
 {% endblock %}

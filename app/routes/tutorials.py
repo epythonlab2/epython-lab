@@ -331,6 +331,33 @@ def search():
 
     return jsonify(results), 200
 
+# # Example: GET /api/v1/topics/<topic_slug>/<subtopic_slug>
+# @bp.route('/<topic_slug>/<subtopic_slug>')
+# def get_subtopic_content(topic_slug, subtopic_slug):
+#     topic = Topic.query.filter_by(slug=topic_slug).first()
+#     if not topic:
+#         return jsonify({"error": "Topic not found"}), 404
+
+#     subtopic = SubTopic.query.filter_by(slug=subtopic_slug, topic_id=topic.id, status='published').first()
+#     if not subtopic:
+#         return jsonify({"error": "Subtopic not found"}), 404
+
+#     # Build response
+#     return jsonify({
+#         "title": subtopic.title,
+#         "slug": subtopic.slug,
+#         "content": subtopic.content,  # HTML or markdown-rendered
+#         "next_subtopic_slug": subtopic.next_slug,  # Adjust field as needed
+#         "all_subtopics": [s.slug for s in topic.subtopics if s.status == "published"],
+#     })
+# Flask API
+@bp.route("/subtopics/<subtopic_slug>/resolve-topic")
+def resolve_topic_from_subtopic(subtopic_slug):
+    sub = SubTopic.query.filter_by(slug=subtopic_slug, status='published').first()
+    if not sub:
+        return jsonify({"error": "Subtopic not found"}), 404
+
+    return jsonify({"topic_slug": sub.topic.slug})
 
 # ----------------------------------------
 # QUIZ ENDPOINTS

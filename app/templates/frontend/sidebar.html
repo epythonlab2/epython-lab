@@ -4,6 +4,29 @@
   class="fixed top-16 left-0 w-64 h-[calc(100vh-4rem)] bg-gray-200 dark:bg-gray-900 p-4 shadow-inner transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out overflow-y-auto z-40"
   style="scrollbar-width: thin;"
 >
+  <!-- Close Button for Mobile with Icon -->
+  <button
+    id="closeSidebarBtn"
+    class="lg:hidden absolute top-0 right-0 text-gray-800 dark:text-gray-200 hover:text-gray-600 dark:hover:text-white rounded-full p-4"
+    aria-label="Close Sidebar"
+  >
+    <!-- Close Icon (X) -->
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      class="w-6 h-6"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      stroke-width="2"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="M6 18L18 6M6 6l12 12"
+      />
+    </svg>
+  </button>
+
   <h2 class="text-2xl font-bold mb-3 text-gray-800 dark:text-gray-100 tracking-wide">
     Python Tutorial
   </h2>
@@ -18,195 +41,15 @@
 <div
   id="sidebar-overlay"
   class="hidden fixed inset-0 bg-black bg-opacity-30 z-30 lg:hidden"
-  onclick="toggleSidebar()"
 ></div>
 
-<!-- Sidebar Logic -->
-<script>
-  /**
-   * Toggles the sidebar visibility for mobile devices.
-   */
-  function toggleSidebar() {
-    const sidebar = document.getElementById("sidebar");
-    const overlay = document.getElementById("sidebar-overlay");
-    const isOpen = !sidebar.classList.contains("-translate-x-full");
+<script type="module">
+  import * as sidebar from "{{ url_for('static', filename='api/sidebar.js') }}";
+  window.sidebar = sidebar;
 
-    if (isOpen) {
-      sidebar.classList.add("-translate-x-full");
-      overlay.classList.add("hidden");
-    } else {
-      sidebar.classList.remove("-translate-x-full");
-      overlay.classList.remove("hidden");
-    }
-  }
-
-  /**
-   * Closes the sidebar and hides overlay.
-   */
-  function closeSidebar() {
-    const sidebar = document.getElementById("sidebar");
-    const overlay = document.getElementById("sidebar-overlay");
-    sidebar.classList.add("-translate-x-full");
-    overlay.classList.add("hidden");
-  }
-
-  /**
-   * Toggles visibility of subtopics under a given topic.
-   * @param {string} submenuId - The ID of the subtopic container UL.
-   * @param {string} arrowId - The ID of the arrow icon to rotate.
-   */
-  function toggleSubtopics(submenuId, arrowId) {
-    const subMenu = document.getElementById(submenuId);
-    const arrow = document.getElementById(arrowId);
-
-    if (subMenu.style.maxHeight && subMenu.style.maxHeight !== "0px") {
-      subMenu.style.maxHeight = "0px";
-      arrow.style.transform = "rotate(0deg)";
-    } else {
-      subMenu.style.maxHeight = subMenu.scrollHeight + "px";
-      arrow.style.transform = "rotate(90deg)";
-    }
-  }
-
-  /**
-   * Fetches the topic data and renders the sidebar menu dynamically.
-   * Highlights the active subtopic based on current URL and auto-expands its parent.
-   * Scrolls sidebar to ensure active subtopic is visible.
-   */
-  async function loadTopics() {
-    try {
-      const response = await fetch("/api/v1/topics/sidebar");
-      if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
-      const topics = await response.json();
-
-      const sidebar = document.getElementById("sidebar-topic-list");
-      sidebar.innerHTML = ""; // Clear loading message
-
-      const currentPath = window.location.pathname.toLowerCase();
-
-      topics.forEach(topic => {
-        const onlyOneSameSub =
-          topic.subtopics &&
-          topic.subtopics.length === 1 &&
-          topic.subtopics[0].title.trim().toLowerCase() === topic.title.trim().toLowerCase();
-
-        if (onlyOneSameSub) {
-          // Render single subtopic as main link
-          const sub = topic.subtopics[0];
-          const isActive = currentPath === `/python/${sub.slug.toLowerCase()}`;
-          const activeClass = isActive ? "active-subtopic font-semibold text-green-700" : "";
-
-          sidebar.innerHTML += `
-            <li>
-              <a href="/python/${sub.slug}" class="block ${activeClass}" onclick="closeSidebar()">${sub.title}</a>
-            </li>
-          `;
-
-        } else if (topic.subtopics && topic.subtopics.length > 0) {
-          // Render topic with expandable subtopics
-          const topicId = `sub-${topic.id}`;
-          const arrowId = `arrow-${topic.id}`;
-
-          // Determine if any subtopic is active for auto-expand
-          const hasActiveSub = topic.subtopics.some(
-            sub => currentPath === `/python/${sub.slug.toLowerCase()}`
-          );
-
-          sidebar.innerHTML += `
-            <li>
-              <button
-                onclick="toggleSubtopics('${topicId}', '${arrowId}')"
-                class="w-full text-left font-semibold hover:text-green-600 flex justify-between items-center focus:outline-none"
-                aria-expanded="${hasActiveSub}"
-                aria-controls="${topicId}"
-              >
-                ${topic.title}
-                <span
-                  id="${arrowId}"
-                  class="inline-block transition-transform duration-300 text-green-600"
-                  style="transform: ${hasActiveSub ? 'rotate(90deg)' : 'rotate(0deg)'}"
-                  aria-hidden="true"
-                >
-                  &#9656;
-                </span>
-              </button>
-              <ul
-                id="${topicId}"
-                class="pl-5 mt-2 space-y-2 overflow-hidden transition-all duration-300 ease-in-out text-sm"
-                style="max-height: ${hasActiveSub ? subMenuMaxHeight(topic.subtopics.length) : '0px'};"
-              >
-                ${topic.subtopics
-                  .map(sub => {
-                    const isActive = currentPath === `/python/${sub.slug.toLowerCase()}`;
-                    const activeClass = isActive ? "active-subtopic font-semibold text-green-700" : "";
-                    return `
-                      <li>
-                        <a href="/python/${sub.slug}" class="block ${activeClass}" onclick="closeSidebar()">
-                          ${sub.title}
-                        </a>
-                      </li>
-                    `;
-                  })
-                  .join("")}
-              </ul>
-            </li>
-          `;
-        } else {
-          // Render standalone topic link
-          const isActive = currentPath === `/python/${topic.slug.toLowerCase()}`;
-          const activeClass = isActive ? "active-subtopic font-semibold text-green-700" : "";
-
-          sidebar.innerHTML += `
-            <li>
-              <a href="/python/${topic.slug}" class="block ${activeClass}" onclick="closeSidebar()">${topic.title}</a>
-            </li>
-          `;
-        }
-      });
-
-      // Scroll sidebar to make active link fully visible with margin
-      scrollActiveSubtopicIntoView();
-    } catch (error) {
-      console.error("Failed to load topics:", error);
-      const sidebar = document.getElementById("sidebar-topic-list");
-      sidebar.innerHTML = `<li class="text-sm text-red-500">Failed to load topics.</li>`;
-    }
-  }
-
-  /**
-   * Computes an estimated max-height for submenus to enable smooth expansion.
-   * @param {number} itemCount - Number of subtopics in the submenu.
-   * @returns {string} CSS max-height value in pixels.
-   */
-  function subMenuMaxHeight(itemCount) {
-    // Estimate 38px per item for comfortable padding and spacing
-    return `${itemCount * 38}px`;
-  }
-
-  /**
-   * Scrolls the sidebar container so that the active subtopic link is fully visible with margin.
-   */
-  function scrollActiveSubtopicIntoView() {
-    const sidebarEl = document.getElementById("sidebar");
-    const activeLink = sidebarEl.querySelector(".active-subtopic");
-
-    if (!activeLink || !sidebarEl) return;
-
-    const sidebarScrollTop = sidebarEl.scrollTop;
-    const sidebarHeight = sidebarEl.clientHeight;
-    const activeOffsetTop = activeLink.offsetTop;
-    const activeHeight = activeLink.offsetHeight;
-    const margin = 8; // pixels
-
-    if (activeOffsetTop + activeHeight > sidebarScrollTop + sidebarHeight) {
-      // Scroll down to reveal bottom of active item
-      sidebarEl.scrollTop = activeOffsetTop + activeHeight - sidebarHeight + margin;
-    } else if (activeOffsetTop < sidebarScrollTop) {
-      // Scroll up to reveal top of active item
-      sidebarEl.scrollTop = activeOffsetTop - margin;
-    }
-  }
-
-  // Initialize sidebar topics after DOM content is fully loaded
-  document.addEventListener("DOMContentLoaded", loadTopics);
+  // Close sidebar when close button is clicked
+  const closeSidebarBtn = document.getElementById("closeSidebarBtn");
+  closeSidebarBtn.addEventListener("click", () => {
+    window.sidebar.closeSidebar();  // Close sidebar when close button is clicked
+  });
 </script>

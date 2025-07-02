@@ -1,4 +1,4 @@
-// Initialize Quill editor
+// Initialize Quill editor with custom toolbar and handlers
 const quill = new Quill('#editor', {
   theme: 'snow',
   modules: {
@@ -9,32 +9,31 @@ const quill = new Quill('#editor', {
         ['blockquote', 'code-block'],
         [{ list: 'ordered' }, { list: 'bullet' }],
         ['link', 'image'],
-        [{ 'custom-block': ['note', 'tip', 'warning'] }],
+        [{ 'custom-block': ['note', 'tip', 'warning'] }], // Custom alert blocks
         ['clean']
       ],
       handlers: {
+        // Handler for inserting custom alert blocks
         'custom-block': function (value) {
           if (!value) return;
           const range = quill.getSelection();
           if (!range) return;
 
+          // Prepare content: either selected text or default placeholder
+          const content = range.length > 0
+            ? quill.getText(range.index, range.length)
+            : `${value.charAt(0).toUpperCase() + value.slice(1)}: Your message here...`;
+
+          // If there is selected text, delete it first
           if (range.length > 0) {
-            const selectedText = quill.getText(range.index, range.length);
-            quill.deleteText(range.index, range.length);
-
-            quill.insertEmbed(range.index, 'custom-alert', {
-              type: value,
-              content: selectedText
-            }, Quill.sources.USER);
-
-            quill.setSelection(range.index + 1);
-          } else {
-            quill.insertEmbed(range.index, 'custom-alert', {
-              type: value,
-              content: `${value.charAt(0).toUpperCase() + value.slice(1)}: Your message here...`
-            }, Quill.sources.USER);
-            quill.setSelection(range.index + 1);
+            quill.deleteText(range.index, range.length, Quill.sources.USER);
           }
+
+          // Insert the custom alert embed at the current cursor position
+          quill.insertEmbed(range.index, 'custom-alert', { type: value, content }, Quill.sources.USER);
+
+          // Move cursor right after the inserted blot
+          quill.setSelection(range.index + 1, Quill.sources.USER);
         }
       }
     }
@@ -42,27 +41,35 @@ const quill = new Quill('#editor', {
   placeholder: 'Write your content here...'
 });
 
-// Define custom alert blot (multi-line support)
+// Define the custom alert blot extending BlockEmbed to allow block-level custom alerts
 const BlockEmbed = Quill.import('blots/block/embed');
 
 class CustomAlert extends BlockEmbed {
   static create(value) {
     const node = super.create();
-    node.setAttribute('class', `alert ${value.type}`);
+
+    // Assign CSS classes for styling (alert + alert type)
+    node.classList.add('alert', value.type);
+
+    // Make alert content editable by the user
     node.setAttribute('contenteditable', 'true');
+
+    // Set content, replacing line breaks with <br> for HTML
     node.innerHTML = value.content
       ? value.content.replace(/\n/g, '<br>')
       : `${value.type.charAt(0).toUpperCase() + value.type.slice(1)}: Your message here...`;
+
     return node;
   }
 
   static value(node) {
-    return {
-      type: node.classList.contains('note') ? 'note' :
-            node.classList.contains('tip') ? 'tip' :
-            node.classList.contains('warning') ? 'warning' : '',
-      content: node.innerHTML.replace(/<br\s*\/?>/g, '\n')
-    };
+    // Detect alert type by CSS class
+    const type = ['note', 'tip', 'warning'].find(cls => node.classList.contains(cls)) || '';
+
+    // Return content with <br> replaced back to newlines
+    const content = node.innerHTML.replace(/<br\s*\/?>/gi, '\n');
+
+    return { type, content };
   }
 }
 
@@ -72,59 +79,59 @@ CustomAlert.className = 'alert';
 
 Quill.register(CustomAlert);
 
-// Handle Enter key inside custom alerts (insert line break)
-quill.root.addEventListener('keydown', function (e) {
+// Handle Enter key inside alert blocks to insert a newline instead of creating a new block
+quill.root.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter') return;
+
   const selection = quill.getSelection();
   if (!selection) return;
 
+  // Get the blot (block) where the cursor is
   const [blot] = quill.getLine(selection.index);
-  if (blot && blot.domNode && blot.domNode.classList.contains('alert')) {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      const range = quill.getSelection();
-      if (range) {
-        quill.insertText(range.index, '\n', Quill.sources.USER);
-        quill.setSelection(range.index + 1, Quill.sources.SILENT);
-      }
-    }
+  if (blot?.domNode?.classList.contains('alert')) {
+    e.preventDefault();
+    // Insert a newline at current cursor position within the alert
+    quill.insertText(selection.index, '\n', Quill.sources.USER);
+    // Move cursor forward after inserted newline
+    quill.setSelection(selection.index + 1, Quill.sources.SILENT);
   }
 });
 
-// Enhance code blocks with <code> tag
-const editor = document.querySelector('#editor');
-
-const observer = new MutationObserver(() => {
-  editor.querySelectorAll('pre.ql-syntax').forEach(pre => {
-    if (!pre.querySelector('code')) {
-      const code = document.createElement('code');
-      code.classList.add('language-python');
-      code.innerHTML = pre.innerHTML;
-      pre.innerHTML = '';
-      pre.appendChild(code);
-    }
-  });
-});
-
-observer.observe(editor, { childList: true, subtree: true });
-
-// Export content as HTML
+// Utility to get sanitized editor content:
+// Transforms Quill's multi-div code blocks into single <pre><code> blocks for syntax highlighting
 window.getEditorContent = function () {
-  let html = quill.root.innerHTML;
-  html = html.replace(/<pre class="ql-syntax"[^>]*>([\s\S]*?)<\/pre>/g,
-    (match, code) => `<pre class="ql-syntax"><code class="language-python">${code}</code></pre>`
-  );
-  return html;
+  const container = document.createElement('div');
+  container.innerHTML = quill.root.innerHTML;
+
+  // Find and transform Quill code block containers
+  container.querySelectorAll('div.ql-code-block-container').forEach(containerEl => {
+    const lines = Array.from(containerEl.querySelectorAll('div.ql-code-block'))
+      .map(div => div.textContent);
+    const codeText = lines.join('\n');
+
+    const pre = document.createElement('pre');
+    pre.classList.add('ql-code-block-container');
+
+    const code = document.createElement('code');
+    code.classList.add('language-python'); // TODO: dynamically detect language if needed
+    code.textContent = codeText;
+
+    pre.appendChild(code);
+    containerEl.replaceWith(pre);
+  });
+
+  return container.innerHTML;
 };
 
+// Disable editing on all alert blocks to prevent accidental modification after insertion
 function disableAllAlerts() {
   document.querySelectorAll('.alert').forEach(el => {
     el.setAttribute('contenteditable', 'false');
   });
 }
 
-quill.on('text-change', () => {
-  disableAllAlerts();
-});
+// Disable alert editing after every text change to keep alerts stable
+quill.on('text-change', disableAllAlerts);
 
-// Also call once after initialization
+// Disable alert editing initially
 disableAllAlerts();

@@ -1,25 +1,143 @@
 <!-- Second Header Navigation Bar -->
-<nav class="fixed top-16 right-0 z-40 h-12 bg-gray-800 dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 w-full flex items-center">
+<nav
+  class="fixed top-16 right-0 z-40 h-12 bg-gray-800 dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 w-full flex items-center"
+  role="navigation"
+  aria-label="Secondary Navigation Bar"
+>
+  <!-- Sidebar Toggle Button (mobile & tablet only) -->
+  <div class="pl-3 lg:hidden">
+    <button
+      id="sidebarToggle"
+      class="bg-green-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-700 focus:outline-none transition"
+      aria-label="Toggle Menu"
+    >
+      &#9776; Menu
+    </button>
+  </div>
 
-    <!-- Sidebar Toggle Button (mobile & tablet only) -->
-    <div class="pl-4 lg:hidden">
-      <button 
-        onclick="toggleSidebar()" 
-        class="bg-green-600 text-white px-3 py-1 rounded shadow hover:bg-green-700 transition"
+  <!-- Navigation Links -->
+  <div class="flex-1 overflow-x-auto">
+    <div
+      class="flex items-center space-x-8 text-md font-semibold whitespace-nowrap h-full pl-6 lg:pl-72 pr-6 transition-all duration-300"
+    >
+      <a
+        href="/"
+        class="text-gray-200 dark:text-gray-200 hover:text-green-600 dark:hover:text-green-600 focus:text-green-500 transition duration-200 ease-in-out px-2 py-1 rounded-md focus:outline-none"
+        >Home</a
       >
-        ☰ Menu
+      <a
+        href="#tutorial"
+        class="text-gray-200 dark:text-gray-200 hover:text-green-600 dark:hover:text-green-600 focus:text-green-500 transition duration-200 ease-in-out px-2 py-1 rounded-md focus:outline-none"
+        >Tutorials</a
+      >
+      <a
+        href="#blog"
+        class="text-gray-200 dark:text-gray-200 hover:text-green-600 dark:hover:text-green-600 focus:text-green-500 transition duration-200 ease-in-out px-2 py-1 rounded-md focus:outline-none"
+        >Blog</a
+      >
+
+      <!-- Progress Button (opens modal) -->
+      <button
+        id="openProgressDialog"
+        class="text-gray-200 dark:text-gray-200 hover:text-green-600 dark:hover:text-green-600 px-3 py-1 rounded-md focus:outline-none transition duration-200 ease-in-out"
+        aria-haspopup="dialog"
+        aria-controls="progressDialog"
+      >
+        Progress
       </button>
     </div>
-  
-    <!-- Navigation Links -->
-    <div class="flex-1 overflow-x-auto">
-        <div class="flex items-center space-x-4 text-md font-2x1 whitespace-nowrap h-full pl-4 lg:pl-72 pr-4 transition-all duration-300">
+  </div>
+</nav>
 
-        <a href="/" class="text-gray-200 dark:text-gray-200 dark:hover:text-green-600 hover:text-green-600">Home</a>
-        <a href="#tutorial" class="text-gray-200 dark:text-gray-200 dark:hover:text-green-600 hover:text-green-600">Tutorials</a>
-        <a href="#blog" class="text-gray-200 dark:text-gray-200 dark:hover:text-green-600 hover:text-green-600">Blog</a>
-        <a href="#progress" class="text-gray-200 dark:text-gray-200 dark:hover:text-green-600 hover:text-green-600">Progress</a>
-      </div>
+
+<!-- Progress Dialog Modal (hidden by default) -->
+<div
+  id="progressDialog"
+  class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden opacity-0 pointer-events-none transition-opacity duration-300"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="progressDialogTitle"
+  aria-describedby="progressDialogDesc"
+  tabindex="-1"
+>
+  <div class="bg-white dark:bg-gray-900 rounded-lg p-8 pt-12 w-full max-w-md mx-2 shadow-lg relative transform transition-transform duration-300 scale-95">
+
+    <!-- Close Button -->
+    <button
+      id="closeProgressDialog"
+      class="absolute top-0 right-0 p-4 text-gray-600 hover:text-gray-900 focus:outline-none"
+      aria-label="Close progress dialog"
+    >
+      ✖
+    </button>
+
+    <h2 id="progressDialogTitle" class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+      Your Progress
+    </h2>
+
+    <!-- Progress Bar -->
+    <div class="w-full bg-gray-200 rounded-full h-4 mb-2 overflow-hidden">
+      <div
+        id="progress-bar"
+        class="bg-green-600 h-4 rounded-full transition-all duration-500 ease-in-out"
+        style="width: 0%;"
+      ></div>
     </div>
-  </nav>
-  
+
+    <!-- Progress Text -->
+    <p id="progress-text" class="text-gray-700 dark:text-gray-300 text-sm">
+      Progress: 0%
+    </p>
+  </div>
+</div>
+
+<script type="module">
+  import { toggleSidebar, closeSidebar } from "{{ url_for('static', filename='api/sidebar.js') }}";
+
+  // Handle sidebar toggle button click
+  document.addEventListener("DOMContentLoaded", () => {
+    const toggleBtn = document.getElementById("sidebarToggle");
+    toggleBtn.addEventListener("click", toggleSidebar);
+
+    // Optionally, you can add other event listeners for close actions or scroll management
+  });
+
+  // Progress modal functionality (remains unchanged)
+  const progressDialog = document.getElementById("progressDialog");
+  const openDialogBtn = document.getElementById("openProgressDialog");
+  const closeDialogBtn = document.getElementById("closeProgressDialog");
+
+  function openModal() {
+    progressDialog.classList.remove("hidden", "pointer-events-none");
+    setTimeout(() => {
+      progressDialog.classList.remove("opacity-0");
+      progressDialog.querySelector("div").classList.remove("scale-95");
+      progressDialog.focus();
+    }, 10);
+  }
+
+  function closeModal() {
+    progressDialog.classList.add("opacity-0");
+    progressDialog.querySelector("div").classList.add("scale-95");
+    setTimeout(() => {
+      progressDialog.classList.add("hidden", "pointer-events-none");
+    }, 300);
+  }
+
+  openDialogBtn.addEventListener("click", openModal);
+  closeDialogBtn.addEventListener("click", closeModal);
+
+  // Close modal on Escape key
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !progressDialog.classList.contains("hidden")) {
+      closeModal();
+    }
+  });
+
+  // Optional: close modal if clicking outside modal content
+  progressDialog.addEventListener("click", (e) => {
+    if (e.target === progressDialog) {
+      closeModal();
+    }
+  });
+</script>

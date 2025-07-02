@@ -78,104 +78,99 @@
   </main>
 </div>
 
+<!-- Hidden inputs to pass IDs to JS -->
 <input type="hidden" id="topic-id" value="{{ topic_id }}">
-<input type="hidden" id="subtopic-id" value="{{ subtopic_id if subtopic_id else '' }}">
+<input type="hidden" id="subtopic-id" value="{{ subtopic_id or '' }}">
 
-<script>
+<!-- Include Quill and utility scripts -->
+<script src="{{ url_for('static', filename='js/quill-content.js') }}"></script>
+<script src="/static/js/utils.js"></script>
+
+<script type="module">
+  import { fetchSubtopicData, saveSubtopic } from '/static/api/content-api.js';
+
   document.addEventListener('DOMContentLoaded', () => {
+    // Get references to DOM elements
     const topicId      = document.getElementById('topic-id').value;
     const subtopicId   = document.getElementById('subtopic-id').value;
     const titleInput   = document.getElementById('title');
     const contentInput = document.getElementById('content-input');
     const messageBox   = document.getElementById('message-box');
 
-       // If editing, fetch existing subtopic data
+    /**
+     * Show feedback message in message box
+     * @param {string} message - The message text to show
+     * @param {string} color - Tailwind CSS color key (e.g. 'red', 'green')
+     */
+    function showMessage(message, color) {
+      messageBox.textContent = message;
+      messageBox.className = `mb-6 rounded-md p-4 text-sm bg-${color}-100 text-${color}-800`;
+      messageBox.classList.remove('hidden');
+      // Auto-hide after 5 seconds
+      setTimeout(() => messageBox.classList.add('hidden'), 5000);
+    }
+
+    // If editing, fetch and populate existing subtopic data
     if (subtopicId) {
-      fetch(`/api/v1/topics/subtopic/${subtopicId}`)
-        .then(res => {
-          if (!res.ok) throw new Error('Failed to load content');
-          return res.json();
-        })
+      fetchSubtopicData(subtopicId)
         .then(data => {
           titleInput.value     = data.title || '';
           quill.root.innerHTML = data.content || '';
-          console.log('Fetched subtopic title:', data.title);
         })
         .catch(err => {
-          showMessage(`Error: ${err.message}`, 'red');
+          showMessage(`Error loading content: ${err.message}`, 'red');
+          console.error(err);
         });
     }
 
-    // Display messages
-    function showMessage(msg, color) {
-      const colorClasses = {
-        red:   'bg-red-100 text-red-800',
-        green: 'bg-green-100 text-green-800'
-      };
-      messageBox.textContent = msg;
-      messageBox.className = `block mb-6 rounded-md p-4 text-sm ${colorClasses[color] || ''}`;
-    }
-
-    // Handle Save/Pubish actions
     document.querySelectorAll('.save-btn[data-status]').forEach(button => {
       button.addEventListener('click', async () => {
-        contentInput.value = quill.root.innerHTML.trim();
-        const status  = button.getAttribute('data-status');
-        const title   = titleInput.value.trim();
-        const content = contentInput.value.trim();
-
-        if (!title || !content) {
-          showMessage('Title and content are required.', 'red');
-          return;
-        }
-
-        const payload = { title, content, status };
-
+        // Disable all save buttons and show loading text on the clicked one
+        document.querySelectorAll('.save-btn').forEach(btn => btn.disabled = true);
+    
+        const originalText = button.textContent;
+        button.textContent = 'Saving...';
+    
         try {
-          let response;
-          if (subtopicId) {
-            // Update existing subtopic
-            response = await fetch(
-              `/api/v1/topics/subtopic/${subtopicId}`,
-              {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-              }
-            );
-          } else {
-            // Create new subtopic
-            response = await fetch(
-              `/api/v1/topics/${topicId}/subtopics`,
-              {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-              }
-            );
+          contentInput.value = quill.root.innerHTML.trim();
+    
+          const status  = button.getAttribute('data-status');
+          const title   = titleInput.value.trim();
+          const content = contentInput.value;
+    
+          if (!title || !content) {
+            showMessage('Title and content are required.', 'red');
+            return;
           }
-
-          const result = await response.json();
-          if (response.ok) {
-            showMessage(
-              subtopicId
-                ? 'Content updated successfully.'
-                : `Subtopic ${status === 'draft' ? 'saved as draft' : 'published'} successfully.`,
-              'green'
-            );
-            if (!subtopicId) {
-              titleInput.value = '';
-              quill.setContents([]);
-            }
-          } else {
-            throw new Error(result.error || result.message || 'Failed to save content.');
+    
+          const payload = { title, content, status, topicId };
+          await saveSubtopic(subtopicId, payload);
+    
+          showMessage(
+            subtopicId
+              ? 'Content updated successfully.'
+              : `Subtopic ${status === 'draft' ? 'saved as draft' : 'published'} successfully.`,
+            'green'
+          );
+    
+          if (!subtopicId) {
+            titleInput.value = '';
+            quill.setContents([]);
           }
+    
         } catch (err) {
+          showMessage(`Failed to save content: ${err.message}`, 'red');
           console.error(err);
-          showMessage(err.message, 'red');
+    
+        } finally {
+          // Re-enable buttons and restore original text
+          button.textContent = originalText;
+          document.querySelectorAll('.save-btn').forEach(btn => btn.disabled = false);
         }
       });
     });
+    
   });
 </script>
+
 {% endblock %}

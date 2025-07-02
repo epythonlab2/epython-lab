@@ -2,77 +2,70 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{% block title %}Admin Dashboard{% endblock %}</title>
-  
+
     <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- ✅ Load Tailwind CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tailwind.css') }}">
+
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
-  
-    <!-- Quill Editor -->
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet" />
-    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
-  
-    <!-- Prism CSS Theme -->
+
+    <!-- Quill Editor CSS & JS -->
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+
+    <!-- Prism.js CSS & JS for syntax highlighting -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.css" />
-  
-    <!-- Prism.js core and Python language support -->
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
-  
+
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
   </head>
-  
 
-<body class="bg-gray-100 text-gray-900 dark:text-gray-100">
-  <div class="flex h-screen overflow-hidden">
-    <!-- Sidebar -->
-    {% include '/dcp/components/sidebar.html' %}
+  <body class="bg-gray-100 text-gray-900 dark:text-gray-100">
+    <div class="flex h-screen overflow-hidden">
 
-    <!-- Main Content -->
-    <div class="flex-1 flex flex-col overflow-hidden transition-all duration-300 md:ml-64">
-      <!-- Header -->
-      {% include '/dcp/components/header.html' %}
+      <!-- Sidebar -->
+      {% include '/dcp/components/sidebar.html' %}
 
-      <!-- Page Content -->
-      <main class="flex-1 overflow-auto p-4 md:p-6">
-        {% block content %}{% endblock %}
-      </main>
+      <!-- Main Content -->
+      <div class="flex-1 flex flex-col overflow-hidden transition-all duration-300 md:ml-64">
+
+        <!-- Header -->
+        {% include '/dcp/components/header.html' %}
+
+        <!-- Page Content -->
+        <main class="flex-1 overflow-auto p-4 md:p-6">
+          {% block content %}{% endblock %}
+        </main>
+      </div>
     </div>
-  </div>
 
-  <!-- Mobile Sidebar Logic -->
-  <script>
-    const sidebar = document.getElementById("mobile-sidebar-panel");
-    const overlay = document.getElementById("mobile-sidebar-overlay");
-    const menuButton = document.getElementById("mobile-menu-button");
+    <!-- Mobile Sidebar Toggle -->
+    <script>
+      const sidebar = document.getElementById("mobile-sidebar-panel");
+      const overlay = document.getElementById("mobile-sidebar-overlay");
+      const menuButton = document.getElementById("mobile-menu-button");
 
-    function openSidebar() {
-      sidebar.classList.remove("-translate-x-full");
-      overlay.classList.remove("hidden");
-    }
+      function openSidebar() {
+        sidebar.classList.remove("-translate-x-full");
+        overlay.classList.remove("hidden");
+      }
 
-    function closeSidebar() {
-      sidebar.classList.add("-translate-x-full");
-      overlay.classList.add("hidden");
-    }
+      function closeSidebar() {
+        sidebar.classList.add("-translate-x-full");
+        overlay.classList.add("hidden");
+      }
 
-    menuButton?.addEventListener("click", openSidebar);
-    overlay?.addEventListener("click", closeSidebar);
-  </script>
+      menuButton?.addEventListener("click", openSidebar);
+      overlay?.addEventListener("click", closeSidebar);
+    </script>
 
-  <!-- App Utility Scripts -->
-  <script src="{{ url_for('static', filename='js/utils.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/highlight-pythoncode.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/quill-content.js') }}"></script>
-
-  <!-- Initialize Editor and Icons -->
-  <script>
-    lucide.createIcons();
-
-  </script>
-
-  
-</body>
+    <!-- Initialize Lucide Icons -->
+    <script>
+      lucide.createIcons();
+    </script>
+  </body>
 </html>
