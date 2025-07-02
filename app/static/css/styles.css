@@ -83,24 +83,8 @@ body::-webkit-scrollbar {
   text-decoration: underline;
 }
 
-
 /* Custom Code Block Style */
-#editor pre.ql-syntax code .language-python  {
-  background-color: #0f172a;
-  color: #042c54;
-  padding: 1rem;
-  border-radius: 0.5rem;
-  font-size: 1rem;
-  line-height: 1.5;
 
-}
-/* .quill-content pre.ql-syntax {
-  padding: 1rem;
-  border-radius: 0.5rem;
-  line-height: 1.5;
-  white-space: pre-wrap;
-  overflow-x: auto;
-} */
 .quill-content {
   font-family: 'Inter', 'ui-sans-serif', 'system-ui', sans-serif;
   line-height: 1.75;
@@ -108,10 +92,6 @@ body::-webkit-scrollbar {
 .dark .quill-content {
   color: #d1d5db; /* Tailwind gray-300 */
 }
-
-/* .quill-content pre.ql-syntax code {
-  font-family: inherit !important;
-} */
 
   /* Optional basic rich text styling */
     
@@ -199,7 +179,6 @@ body::-webkit-scrollbar {
   color: #d1d5db;
 }
 
-
 /* Customized Prism.js CSS */
 /* W3Schools-style Code Block Appearance */
 
@@ -263,18 +242,6 @@ pre[class*="language-"] {
   content: 'Alert';
   white-space: nowrap;
 }
-
-/* Position arrow inline with text
-.ql-custom-block .ql-picker-label svg {
-  flex-shrink: 0;
-  width: 12px;
-  padding-top:2px;
-  height: 12px;
-  fill: #667;
-  position: static;
-  transform: none;
-  pointer-events: none;
-} */
 
 /* Dropdown items text */
 .ql-custom-block .ql-picker-item[data-value="note"]::before {
@@ -378,7 +345,6 @@ pre[class*="language-"] {
   font-size: 20px;
   line-height: 1;
 }
-
 
 /* Container for the entire video embed */
 .video-embed {

@@ -35,35 +35,83 @@
 <script src="/static/js/utils.js"></script>
 
 <script type="module">
-
   import { fetchTopicById, deleteSubtopicById } from '/static/api/content-api.js';
-  
 
-  document.addEventListener("DOMContentLoaded", loadTopic);
+  /**
+   * Converts Quill editor's div-based code blocks into semantic <pre><code> blocks,
+   * suitable for Prism.js syntax highlighting.
+   * @param {HTMLElement} container - The container holding Quill-generated content.
+   */
+  function transformQuillCodeBlocks(container) {
+    container.querySelectorAll("div.ql-code-block-container").forEach(containerEl => {
+      // Extract all lines of code text from nested divs
+      const lines = Array.from(containerEl.querySelectorAll("div.ql-code-block"))
+        .map(div => div.textContent)
+        .join("\n");
 
+      // Create <pre> and <code> elements
+      const pre = document.createElement("pre");
+      pre.className = "ql-code-block-container";
+      pre.setAttribute("spellcheck", "false");
+
+      const code = document.createElement("code");
+      code.className = "language-python"; // TODO: Extend to detect language dynamically if needed
+      code.textContent = lines;
+
+      // Replace Quill div with semantic block
+      pre.appendChild(code);
+      containerEl.replaceWith(pre);
+    });
+  }
+
+  /**
+   * Applies syntax highlighting on all <pre><code> blocks inside the container
+   * after converting Quill code blocks to semantic blocks.
+   * @param {string} containerId - The id of the container element.
+   */
+  function highlightCodeBlocks(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    transformQuillCodeBlocks(container);
+
+    container.querySelectorAll("pre code").forEach(block => {
+      Prism.highlightElement(block);
+    });
+  }
+
+  /**
+   * Load topic details and render subtopics, applying syntax highlighting to code blocks.
+   */
   async function loadTopic() {
     const topicId = document.getElementById("topic-id")?.value;
     const titleEl = document.getElementById("topic-title");
     const subtopicsEl = document.getElementById("subtopics-list");
-  
+
     if (!topicId) {
       titleEl.textContent = "Topic ID not provided.";
       return;
     }
-  
+
     try {
       const topic = await fetchTopicById(topicId);
+
+      // Update page title and heading
       titleEl.textContent = `Manage Subtopics for: ${topic.title}`;
       document.title = `Manage Subtopics - ${topic.title}`;
-  
+
+      // Handle empty subtopics case
       if (!topic.subtopics.length) {
         subtopicsEl.innerHTML = `<p class="text-sm text-gray-500 text-center">No subtopics found for this topic.</p>`;
         return;
       }
-  
+
+      // Clear existing content
       subtopicsEl.innerHTML = "";
+
+      // Render each subtopic block
       topic.subtopics.forEach((sub, index) => {
-        subtopicsEl.innerHTML += `
+        subtopicsEl.insertAdjacentHTML('beforeend', `
           <div class="p-4 border border-gray-200 rounded-xl shadow-sm bg-gray-50">
             <div class="flex justify-between items-start">
               <div>
@@ -85,41 +133,43 @@
               </div>
             </details>
           </div>
-        `;
+        `);
       });
-  
-     // Then highlight each dynamically inserted code block:
-     topic.subtopics.forEach((sub, index) => {
-      const codeBlocks = document.querySelectorAll(`#dynamic-code-${index} pre code`);
-      codeBlocks.forEach(block => Prism.highlightElement(block));
-    });
-    
-  
+
+      // After all subtopics rendered, highlight each dynamic code container
+      topic.subtopics.forEach((_, index) => {
+        highlightCodeBlocks(`dynamic-code-${index}`);
+      });
+
     } catch (err) {
       titleEl.textContent = "Failed to load topic data.";
-      subtopicsEl.innerHTML = `<p class="text-sm text-red-600 text-center">Error: ${err.message}</p>`;
+      subtopicsEl.innerHTML = `<p class="text-sm text-red-600 text-center">Error: ${escapeHtml(err.message)}</p>`;
+      console.error("Error loading topic:", err);
     }
   }
-  
-// Handle deletion
-window.handleDelete = async function(id) {
-  if (!confirm("Are you sure you want to delete this subtopic?")) return;
-  try {
-    await deleteSubtopicById(id);
-    loadTopic();
-    showMessage("Subtopic deleted successfully.", "success");
-  } catch (err) {
-    showMessage("Failed to delete subtopic.", "error");
-  }
-};
 
-// Edit subtopic redirect
-window.editSubtopic = function(id) {
-  const topicId = document.getElementById("topic-id").value;
-  window.location.href = `/dcp/admin/subtopics/create?topic_id=${topicId}&subtopic_id=${id}`;
-};
+  // Initialize content load on DOM ready
+  document.addEventListener("DOMContentLoaded", loadTopic);
 
+  // Handle subtopic deletion with confirmation and reload
+  window.handleDelete = async function(id) {
+    if (!confirm("Are you sure you want to delete this subtopic?")) return;
+    try {
+      await deleteSubtopicById(id);
+      await loadTopic();
+      showMessage("Subtopic deleted successfully.", "success");
+    } catch (err) {
+      showMessage("Failed to delete subtopic.", "error");
+      console.error("Delete failed:", err);
+    }
+  };
 
-  </script>
+  // Redirect to edit subtopic page
+  window.editSubtopic = function(id) {
+    const topicId = document.getElementById("topic-id").value;
+    window.location.href = `/dcp/admin/subtopics/create?topic_id=${topicId}&subtopic_id=${id}`;
+  };
+
+</script>
 
 {% endblock %}

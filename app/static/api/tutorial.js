@@ -73,7 +73,29 @@ function highlightCodeBlocks(containerId) {
   setTimeout(() => {
     const container = document.getElementById(containerId);
     if (!container) return;
-    container.querySelectorAll("pre code").forEach(block => Prism.highlightElement(block));
+
+    container.querySelectorAll(".ql-code-block-container").forEach(containerEl => {
+      // Extract all the code lines inside
+      const lines = Array.from(containerEl.querySelectorAll(".ql-code-block")).map(line => line.textContent);
+      const codeText = lines.join('\n');
+
+      // Create semantic <pre><code> block
+      const pre = document.createElement('pre');
+      pre.className = 'ql-code-block-container';
+
+      const code = document.createElement('code');
+      code.className = 'language-python';  // or detect language dynamically
+      code.textContent = codeText;
+
+      pre.appendChild(code);
+
+      // Replace original container with <pre><code>
+      containerEl.replaceWith(pre);
+
+      // Highlight the code block
+      Prism.highlightElement(code);
+    });
   }, 0);
 }
+
 
