@@ -5,8 +5,9 @@ export function initAddUserModal(reloadUsersCallback) {
   const openBtn = document.getElementById('open-add-user-modal');
   const cancelBtn = document.getElementById('cancel-add-user');
   const form = document.getElementById('add-user-form');
+  const submitBtn = form.querySelector('button[type="submit"]'); // Submit button
 
-  if (!modal || !openBtn || !cancelBtn || !form) {
+  if (!modal || !openBtn || !cancelBtn || !form || !submitBtn) {
     console.warn('User modal elements not found.');
     return;
   }
@@ -46,6 +47,10 @@ export function initAddUserModal(reloadUsersCallback) {
       return;
     }
 
+    // Show "Saving..." text and disable the button
+    submitBtn.disabled = true;
+    submitBtn.innerText = 'Saving...';
+
     try {
       await createUser(userData);
       showToast('✅ User created successfully', 'success');
@@ -57,6 +62,10 @@ export function initAddUserModal(reloadUsersCallback) {
                   JSON.stringify(err.response?.data) ||
                   'Failed to create user.';
       showToast(`❌ ${msg}`, 'error');
+    } finally {
+      // Revert the button text and enable it
+      submitBtn.disabled = false;
+      submitBtn.innerText = 'Create User';
     }
   });
 

@@ -161,15 +161,41 @@ def get_users():
     limit = int(request.args.get('limit', 10))
     offset = int(request.args.get('offset', 0))
 
-    query = User.query.order_by(User.created_at.desc())
+    # Get filters from query parameters
+    search = request.args.get('search', '').strip()  # Search term for username/email
+    role = request.args.get('role', '').strip()  # Filter by role
+    status = request.args.get('status', '').strip()  # Filter by status (active/inactive)
+
+    query = User.query
+
+    # Apply search filter (search by username or email)
+    if search:
+        query = query.filter(
+            (User.username.ilike(f'%{search}%')) | (User.email.ilike(f'%{search}%'))
+        )
+
+    # Apply role filter
+    if role:
+        query = query.filter(User.roles.any(name=role))
+
+    # Apply status filter
+    if status:
+        if status == 'active':
+            query = query.filter(User.is_active == True)
+        elif status == 'inactive':
+            query = query.filter(User.is_active == False)
+
+    # Get total count of filtered results
     total = query.count()
 
+    # Fetch the users with limit and offset
     users = query.limit(limit).offset(offset).all()
+
+    # Return the filtered results
     return jsonify({
         "total": total,
-        "users": [user.to_dict() for user in users]
+        "users": [user.to_dict() for user in users]  # Assuming you have a to_dict method to convert user to JSON
     })
-
 
 @auth_bp.route('/users/<int:user_id>', methods=['GET'])
 @roles_required('admin')
@@ -197,7 +223,7 @@ def update_user(user_id):
 
 
 @auth_bp.route('/users/<int:user_id>', methods=['DELETE'])
-@roles_required('admin')
+@roles_required('root')
 def delete_user(user_id):
     user = User.query.get_or_404(user_id)
     db.session.delete(user)

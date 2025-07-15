@@ -10,18 +10,26 @@ export function initUserTable({
   const prevBtn = document.getElementById('prev-page');
   const nextBtn = document.getElementById('next-page');
 
+  const searchInput = document.getElementById('search-input');
+  const roleFilter = document.getElementById('role-filter');
+  const statusFilter = document.getElementById('status-filter');
+
   let currentPage = 1;
   const USERS_PER_PAGE = 10;
+  let filters = {
+    search: '',
+    role: '',
+    status: ''
+  };
 
+  // Load users from API with filters
   async function loadUsers() {
     const offset = (currentPage - 1) * USERS_PER_PAGE;
-
     try {
-      console.log(`Loading users with limit=${USERS_PER_PAGE}, offset=${offset}`);
-      const response = await fetchUsers(USERS_PER_PAGE, offset);
+      const response = await fetchUsers(USERS_PER_PAGE, offset, filters);
 
       if (!response || !response.users) {
-        throw new Error('Invalid response format');
+        throw new Error('Invalid response format or no users returned.');
       }
 
       renderUserRows(response.users);
@@ -34,15 +42,18 @@ export function initUserTable({
     } catch (err) {
       console.error('Error loading users:', err);
       summary.textContent = 'Failed to load users.';
+      showToast('❌ Failed to load users.', 'error');
     }
   }
 
+  // Update pagination controls based on total number of users
   function updatePaginationControls(total) {
     const totalPages = Math.ceil(total / USERS_PER_PAGE);
     prevBtn.disabled = currentPage <= 1;
     nextBtn.disabled = currentPage >= totalPages;
   }
 
+  // Event listeners for pagination buttons
   prevBtn.addEventListener('click', () => {
     if (currentPage > 1) {
       currentPage--;
@@ -55,15 +66,29 @@ export function initUserTable({
     loadUsers();
   });
 
+  // Event listeners for filter inputs
+  searchInput.addEventListener('input', (e) => {
+    filters.search = e.target.value.trim();
+    loadUsers();
+  });
+
+  roleFilter.addEventListener('change', (e) => {
+    filters.role = e.target.value;
+    loadUsers();
+  });
+
+  statusFilter.addEventListener('change', (e) => {
+    filters.status = e.target.value;
+    loadUsers();
+  });
+
+  // Render user rows in the table
   function renderUserRows(users) {
-    tableBody.innerHTML = '';
+    tableBody.innerHTML = '';  // Clear the existing rows
+
     users.forEach((user, index) => {
       const role = user.roles?.[0] || 'viewer';
-      const roleColor = role === 'admin'
-        ? 'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100'
-        : role === 'editor'
-        ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100'
-        : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100';
+      const roleColor = getRoleColor(role);
 
       const row = document.createElement('tr');
       row.className = "border-b border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800";
@@ -99,33 +124,81 @@ export function initUserTable({
       tableBody.appendChild(row);
     });
 
-    // Only create icons if lucide is available
+    // Create icons only once if lucide is available
     if (typeof lucide !== 'undefined' && lucide.createIcons) {
-          // When using the UMD bundle, the 'icons' object is usually
-          // directly accessible as a property of the global 'lucide' object.
-          lucide.createIcons({ icons: lucide.icons });
-          // Or, if you want to apply to all elements with data-lucide attribute:
-          // lucide.createIcons(); // This implicitly uses lucide.icons by default in UMD
-      } else {
-          console.error("Lucide library not found or not initialized correctly.");
-      }
+      lucide.createIcons({ icons: lucide.icons });
+    } else {
+      console.error("Lucide library not found or not initialized correctly.");
+    }
   }
 
+  // Get role color based on user role
+  function getRoleColor(role) {
+    switch (role) {
+      case 'admin':
+        return 'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100';
+      case 'editor':
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100';
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100';
+    }
+  }
+
+  // Show toast notifications
+  function showToast(message, type = 'info') {
+    const colors = {
+      success: '#16a34a',  // green
+      error: '#dc2626',    // red
+      warning: '#f59e0b',  // yellow
+      info: '#3b82f6'      // blue
+    };
+
+    Toastify({
+      text: message,
+      duration: 4000,
+      gravity: 'top',
+      position: 'right',
+      backgroundColor: colors[type] || colors.info,
+      close: true
+    }).showToast();
+  }
+
+  // Handle delete user action
   tableBody.addEventListener('click', async (e) => {
     if (e.target.classList.contains('delete-user-btn')) {
       const id = e.target.getAttribute('data-user-id');
       if (confirm('Are you sure you want to delete this user?')) {
+        const deleteButton = e.target;
+        deleteButton.innerHTML = '<i class="w-4 h-4 animate-spin" data-lucide="loader"></i> Deleting...';
+        deleteButton.disabled = true;
+
         try {
           await deleteUser(id);
-          await loadUsers();
-        } catch {
-          alert('Failed to delete user.');
+          showToast('✅ User deleted successfully', 'success'); // Success toast
+
+          // After deletion, check if the current page is still valid
+          const response = await fetchUsers(USERS_PER_PAGE, (currentPage - 1) * USERS_PER_PAGE, filters);
+          const totalUsers = response.total;
+          const totalPages = Math.ceil(totalUsers / USERS_PER_PAGE);
+
+          // If we are on the last page and there are no users, move to the previous page
+          if (currentPage > totalPages && totalPages > 0) {
+            currentPage--;
+          }
+
+          await loadUsers();  // Reload users after deletion
+        } catch (err) {
+          showToast('❌ Failed to delete user.', 'error'); // Error toast
+        } finally {
+          // Restore button text and re-enable it
+          deleteButton.innerHTML = 'Delete';
+          deleteButton.disabled = false;
         }
       }
     }
   });
 
-  loadUsers();
+  loadUsers();  // Initial loading of users
 
   return {
     reload: loadUsers
