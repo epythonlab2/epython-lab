@@ -1,4 +1,4 @@
-import { fetchUsers, deleteUser } from '/static/api/user_api.js';
+import { fetchUsers, deleteUser, getUserById, updateUser } from '/static/api/user_api.js';
 
 export function initUserTable({
   tableBodyId = 'user-table-body',
@@ -111,11 +111,12 @@ export function initUserTable({
                </span>`}
         </td>
         <td class="px-6 py-3 text-right">
-          <a href="/dcp/admin/users/${user.id}/edit"
-             class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200 text-sm font-medium mr-4">
+          <a href="#"
+             class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200 text-sm font-medium mr-4 edit-user-btn"
+             data-user-id="${user.id}">
             Edit
           </a>
-          ${(currentUserRole === 'admin' || currentUserRole === 'root') ? `
+          ${(currentUserRole === 'admin' || currentUserRole === 'root') && !user.roles.includes('admin') && !user.roles.includes('root') ? `
           <button data-user-id="${user.id}"
                   class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200 text-sm font-medium delete-user-btn">
             Delete
@@ -176,16 +177,7 @@ export function initUserTable({
           await deleteUser(id);
           showToast('✅ User deleted successfully', 'success'); // Success toast
 
-          // After deletion, check if the current page is still valid
-          const response = await fetchUsers(USERS_PER_PAGE, (currentPage - 1) * USERS_PER_PAGE, filters);
-          const totalUsers = response.total;
-          const totalPages = Math.ceil(totalUsers / USERS_PER_PAGE);
-
-          // If we are on the last page and there are no users, move to the previous page
-          if (currentPage > totalPages && totalPages > 0) {
-            currentPage--;
-          }
-
+          // Reload users after deletion
           await loadUsers();  // Reload users after deletion
         } catch (err) {
           showToast('❌ Failed to delete user.', 'error'); // Error toast
@@ -196,6 +188,52 @@ export function initUserTable({
         }
       }
     }
+    if (e.target.classList.contains('edit-user-btn')) {
+      const userId = e.target.getAttribute('data-user-id');
+      openEditUserModal(userId);  // Open the Edit Modal
+    }
+  });
+
+  // Open Edit User Modal
+  async function openEditUserModal(userId) {
+    const modal = document.getElementById('edit-user-modal');
+    const user = await getUserById(userId);
+
+    document.getElementById('edit-user-id').value = user.id;
+    document.getElementById('edit-username').value = user.username;
+    document.getElementById('edit-email').value = user.email;
+    document.getElementById('edit-role').value = user.roles[0];
+    document.getElementById('edit-status').value = user.is_active ? 'active' : 'inactive';
+
+    modal.classList.remove('hidden');
+  }
+
+  // Handle the Edit User Form Submit
+  document.getElementById('edit-user-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(e.target);
+    const userId = document.getElementById('edit-user-id').value;
+
+    const updatedUser = {
+      username: formData.get('username'),
+      email: formData.get('email'),
+      is_active: formData.get('status') === 'active',
+      // Pass the role only when allowed (root or user with permission)
+      roles: currentUserRole === 'admin' || currentUserRole === 'root'
+        ? [formData.get('role')]  // Pass the role only if currentUser is root
+        : undefined               // Admin cannot change roles
+    };
+
+    try {
+      await updateUser(userId, updatedUser);
+      showToast('✅ User updated successfully', 'success');
+      loadUsers();  // Reload the user list
+      document.getElementById('edit-user-modal').classList.add('hidden');  // Hide the modal
+    } catch (err) {
+      showToast('❌ Failed to update user.', 'error');
+    }
+
   });
 
   loadUsers();  // Initial loading of users

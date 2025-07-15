@@ -32,18 +32,10 @@ export function initAddUserModal(reloadUsersCallback) {
       role: formData.get('role')
     };
 
-    if (!userData.username) {
-      showToast('Username is required.', 'error');
-      return;
-    }
-
-    if (!validateEmail(userData.email)) {
-      showToast('Invalid email format.', 'error');
-      return;
-    }
-
-    if (!userData.password || userData.password.length < 6) {
-      showToast('Password must be at least 6 characters.', 'error');
+    // Input validation with error handling
+    const validationError = validateInputs(userData);
+    if (validationError) {
+      showToast(validationError, 'error');
       return;
     }
 
@@ -69,16 +61,33 @@ export function initAddUserModal(reloadUsersCallback) {
     }
   });
 
+  // Hide the modal and reset form
   function hideModal() {
     modal.classList.add('hidden');
     modal.classList.remove('flex');
     form.reset();
   }
 
+  // Validate form inputs
+  function validateInputs(userData) {
+    if (!userData.username) {
+      return 'Username is required.';
+    }
+    if (!validateEmail(userData.email)) {
+      return 'Invalid email format.';
+    }
+    if (!userData.password || userData.password.length < 6) {
+      return 'Password must be at least 6 characters.';
+    }
+    return null; // No validation error
+  }
+
+  // Validate email format using regex
   function validateEmail(email) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   }
 
+  // Display toast notifications
   function showToast(message, type = 'info') {
     const colors = {
       success: '#16a34a',  // green
