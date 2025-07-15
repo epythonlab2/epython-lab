@@ -85,6 +85,9 @@ def login():
     if not user or not user.check_password(data['password']):
         return jsonify({"msg": "Invalid username or password"}), 401
 
+    if not user.is_active:
+        return jsonify({"msg": "Your account is inactive. Please contact an administrator."}), 403
+
     # Implement access token expiration (e.g., 15 minutes for access token)
     access_token = create_access_token(identity=user.username, expires_delta=timedelta(minutes=15))
     refresh_token = create_refresh_token(identity=user.username)
