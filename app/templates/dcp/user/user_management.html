@@ -3,26 +3,27 @@
 {% block header_title %}Manage Users{% endblock %}
 
 {% block content %}
+<!-- Main Header Section -->
 <div class="flex items-center justify-between mb-6">
   <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100">User Management</h2>
+  <!-- Add User Button -->
   <button id="open-add-user-modal"
           class="inline-flex items-center gap-2 px-5 py-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition">
     <i data-lucide="user-plus" class="w-5 h-5"></i> Add User
   </button>
 </div>
 
-<!-- Filters -->
+<!-- Filters Section -->
 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
     <!-- Search by Username or Email -->
     <div class="relative w-full sm:max-w-xs">
       <input id="search-input" type="text" placeholder="Search by username or email"
              class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600 transition-all ease-in-out duration-200">
       <!-- Search Icon -->
-      <div class="absolute left-3 pl-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+      <div class="absolute left-3 top-1/2 pl-3 transform -translate-y-1/2 text-gray-400">
         <i data-lucide="search" class="w-5 h-5"></i>
       </div>
     </div>
-
 
   <!-- Filter by Role -->
   <div class="relative w-full sm:max-w-xs">
@@ -44,7 +45,7 @@
   </div>
 </div>
 
-<!-- User Table -->
+<!-- User Table Section -->
 <div class="bg-white p-6 rounded-xl shadow-md dark:bg-gray-900 dark:shadow-none border border-gray-200 dark:border-gray-700 overflow-x-auto">
   <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4">Users</h3>
   <table class="w-full text-sm text-left whitespace-nowrap">
@@ -59,7 +60,7 @@
       </tr>
     </thead>
     <tbody id="user-table-body" class="text-gray-700 dark:text-gray-300 divide-y divide-gray-100 dark:divide-gray-800">
-      <!-- Dynamic Rows -->
+      <!-- Dynamic User Rows will be inserted here -->
     </tbody>
   </table>
 </div>
@@ -126,26 +127,42 @@
 </div>
 
 <script type="module">
+  // Initialize the user table with dynamic loading and filtering
   import { initUserTable } from '/static/js/user_table.js';
   import { initAddUserModal } from '/static/js/user_modal.js';
+  import { debounce } from '/static/utils/debounce.js'; // Import the debounce function
+  // Set the role for the current user (can be dynamically replaced if needed)
+  const currentUserRole = 'admin'; // Can be 'admin', 'editor', 'viewer', etc.
 
-  const currentUserRole = 'admin'; // dynamically replace if needed
+  // Initialize user table functionality
   const userTable = initUserTable({ currentUserRole });
+
+  // Initialize the modal for adding a new user
   initAddUserModal(userTable.reload);
 
-  // Modal open/close transitions
+  // Handle modal open/close transitions
   const modal = document.getElementById('add-user-modal');
   const openBtn = document.getElementById('open-add-user-modal');
   const cancelBtn = document.getElementById('cancel-add-user');
 
+  // Open modal when "Add User" button is clicked
   openBtn?.addEventListener('click', () => {
     modal.classList.remove('hidden');
   });
 
+  // Close modal when "Cancel" button is clicked
   cancelBtn?.addEventListener('click', () => {
     modal.classList.add('hidden');
   });
 
+  // Apply debounce on other filters as well
+document.getElementById('role-filter').addEventListener('change', debounce(function() {
+  userTable.applyFilters();
+}, 500));
+
+document.getElementById('status-filter').addEventListener('change', debounce(function() {
+  userTable.applyFilters();
+}, 500));
 
 </script>
 {% endblock %}
