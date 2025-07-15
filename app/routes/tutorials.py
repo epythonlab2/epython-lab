@@ -1,10 +1,11 @@
 from flask import Blueprint, request, jsonify, abort
 from app.models.tutorial import db, Topic, SubTopic, Quiz
-from schemas import TopicSchema, SubTopicSchema, QuizSchema
+from app.routes.schemas import TopicSchema, SubTopicSchema, QuizSchema
 from datetime import datetime, timezone
-from app.models.utils import slugify
+from app.routes.utils import slugify
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
-bp = Blueprint('tutorials', __name__, url_prefix='/api/v1/topics')
+bp = Blueprint('tutorials', __name__)
 
 # Utility Function
 def get_subtopic_by_slug(topic_slug, subtopic_slug):
@@ -19,6 +20,7 @@ def get_subtopic_by_slug(topic_slug, subtopic_slug):
 # ----------------------------------------
 
 @bp.route('/', methods=['GET'])
+@jwt_required()
 def get_all_topics():
     """
     Fetch all topics with pagination.
@@ -43,6 +45,7 @@ def get_all_topics():
     }), 200
     
 @bp.route('/', methods=['POST'])
+@jwt_required()
 def create_topic():
     """
     Create a new topic. Expects JSON payload with 'title'.
@@ -68,6 +71,7 @@ def create_topic():
 
 
 @bp.route('/<int:topic_id>', methods=['GET'])
+@jwt_required()
 def get_topic_detail(topic_id):
     """
     Retrieve a single topic, including its subtopics and quizzes.
@@ -86,6 +90,7 @@ def get_topic_detail(topic_id):
 
 
 @bp.route('/<int:topic_id>', methods=['PUT'])
+@jwt_required()
 def update_topic(topic_id):
     """
     Update an existing topic's title. Expects JSON payload with 'title'.
@@ -111,6 +116,7 @@ def update_topic(topic_id):
 
 
 @bp.route('/<int:topic_id>', methods=['DELETE'])
+@jwt_required()
 def delete_topic(topic_id):
     """
     Delete a topic and cascade-delete its subtopics and quizzes (if configured).
@@ -132,6 +138,7 @@ def delete_topic(topic_id):
 # ----------------------------------------
 
 @bp.route('/<int:topic_id>/subtopics', methods=['POST'])
+@jwt_required()
 def create_content(topic_id):
     """
     Create a new subtopic (content) under the specified topic.
@@ -163,6 +170,7 @@ def create_content(topic_id):
 
 
 @bp.route('/subtopic/<int:subtopic_id>', methods=['GET'])
+@jwt_required()
 def get_single_subtopic(subtopic_id):
     """
     Fetch a single subtopic by its ID.
@@ -172,6 +180,7 @@ def get_single_subtopic(subtopic_id):
 
 
 @bp.route('/subtopic/<int:subtopic_id>', methods=['PUT'])
+@jwt_required()
 def update_content(subtopic_id):
     """
     Update an existing subtopic. Expects JSON: { title, content, status, code_snippet }.
@@ -200,6 +209,7 @@ def update_content(subtopic_id):
 
 
 @bp.route('/subtopic/<int:subtopic_id>', methods=['DELETE'])
+@jwt_required()
 def delete_content(subtopic_id):
     """
     Delete a subtopic and cascade-delete its quizzes (if configured).

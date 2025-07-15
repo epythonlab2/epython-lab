@@ -10,6 +10,10 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/tailwind.css') }}">
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+    <!-- Toastify CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <!-- Toastify JS -->
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 
     <!-- Quill Editor CSS & JS -->
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet" />
@@ -21,7 +25,10 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
 
     <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- <script src="https://unpkg.com/lucide@latest"></script> -->
+    <script type="module" src="{{ url_for('static', filename='js/lucide-bundle.js') }}"></script>
+
+
   </head>
 
   <body class="bg-gray-100 text-gray-900 dark:text-gray-100">
@@ -61,11 +68,12 @@
 
       menuButton?.addEventListener("click", openSidebar);
       overlay?.addEventListener("click", closeSidebar);
+      console.log(window.lucide);  // Check if lucide object is available
+
+
+      
     </script>
 
-    <!-- Initialize Lucide Icons -->
-    <script>
-      lucide.createIcons();
-    </script>
+
   </body>
 </html>

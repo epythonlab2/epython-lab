@@ -41,20 +41,15 @@
   <section class="bg-white p-6 rounded-2xl shadow-md border border-gray-200">
     <div class="flex items-center gap-3 mb-4 select-none">
       <i
-        id="toggle-topics-icon"
         data-lucide="list-checks"
-        class="w-5 h-5 text-green-600 cursor-pointer transition-transform duration-200"
-        title="Toggle Topics List"
-        role="button"
-        tabindex="0"
-        aria-pressed="false"
-        style="transform: rotate(-90deg);"
+        class="w-5 h-5 text-green-600"
+        title="Existing Topics"
       ></i>
       <h2 class="text-lg font-semibold text-gray-800">Existing Topics</h2>
     </div>
 
     <!-- Topics List Placeholder -->
-    <ul id="topics-list" class="space-y-3" hidden></ul>
+    <ul id="topics-list" class="space-y-3"></ul>
 
     <!-- Pagination Controls -->
     <div id="pagination-controls" class="mt-6 flex justify-center items-center gap-4" hidden>
@@ -135,12 +130,10 @@
 
 <script src="/static/js/utils.js"></script>
 <script type="module">
-  // import { showMessage } from '/static/js/utils.js';
   import { fetchTopics, createTopic, editTopic, deleteTopic } from '/static/api/content-api.js';
 
   document.addEventListener('DOMContentLoaded', () => {
     // --- Element references ---
-    const toggleIcon = document.getElementById('toggle-topics-icon');
     const topicsList = document.getElementById('topics-list');
     const emptyState = document.getElementById('empty-state');
     const createTopicForm = document.getElementById('create-topic-form');
@@ -158,28 +151,11 @@
     const editCancelBtn = document.getElementById('edit-cancel-btn');
 
     // --- State variables ---
-    let isVisible = false;        // Whether topic list is visible
     let editingTopicId = null;    // Topic ID currently being edited
 
     let currentPage = 1;          // Current pagination page
     let totalPages = 1;           // Total number of pages
     const pageSize = 5;           // Topics per page
-
-    /**
-     * Toggle visibility of the topic list.
-     * Loads topics when shown.
-     */
-    function toggleTopicsVisibility() {
-      isVisible = !isVisible;
-      topicsList.hidden = !isVisible;
-      emptyState.style.display = (isVisible && topicsList.children.length === 0) ? 'block' : 'none';
-      toggleIcon.style.transform = isVisible ? 'rotate(0deg)' : 'rotate(-90deg)';
-      toggleIcon.setAttribute('aria-pressed', isVisible.toString());
-
-      if (isVisible) {
-        loadTopics(currentPage);
-      }
-    }
 
     /**
      * Fetch topics for a given page and update the UI.
@@ -229,20 +205,10 @@
           prevPageBtn.disabled = currentPage <= 1;
           nextPageBtn.disabled = currentPage >= totalPages;
         }
-
-        // Maintain visibility states
-        topicsList.hidden = !isVisible;
-        emptyState.style.display = (isVisible && topicsList.children.length === 0) ? 'block' : 'none';
-
-        // Refresh Lucide icons if present
-        if (window.lucide && typeof window.lucide.replace === 'function') {
-          window.lucide.replace();
-        }
       } catch (error) {
         console.error('Error loading topics:', error);
         emptyState.textContent = 'Error loading topics.';
         emptyState.hidden = false;
-        emptyState.style.display = isVisible ? 'block' : 'none';
         paginationControls.hidden = true;
       }
     }
@@ -363,23 +329,13 @@
     }
 
     // --- Event listeners ---
-    toggleIcon.addEventListener('click', toggleTopicsVisibility);
     createTopicForm.addEventListener('submit', handleCreateTopic);
     topicsList.addEventListener('click', handleTopicsListClick);
     editCancelBtn.addEventListener('click', closeEditModal);
     editTopicForm.addEventListener('submit', handleEditTopicSubmit);
 
-    // Close edit modal if click outside form content
-    editModal.addEventListener('click', (event) => {
-      if (event.target === editModal) {
-        closeEditModal();
-      }
-    });
-
-    // Load topics on page load if list visible
-    if (isVisible) {
-      loadTopics(currentPage);
-    }
+    // Load topics on page load
+    loadTopics(currentPage);
   });
 </script>
 
