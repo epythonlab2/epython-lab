@@ -2,10 +2,24 @@
 import auth_client from "./auth_client.js";
 
 // Fetch all users (optionally with filters or pagination)
-export async function fetchUsers(limit = 10, offset = 0) {
-  const res = await auth_client.get(`/users?limit=${limit}&offset=${offset}`);
+// Fetch all users with optional filters or pagination
+export async function fetchUsers(limit = 10, offset = 0, filters = {}) {
+  // Construct the query string based on the provided filters
+  const { search = '', role = '', status = '' } = filters;
+
+  const res = await auth_client.get('/users', {
+    params: {
+      limit,
+      offset,
+      search,
+      role,
+      status
+    }
+  });
+
   return res.data;  // { total, users }
 }
+
 
 // Fetch a single user by ID
 export async function getUserById(userId) {

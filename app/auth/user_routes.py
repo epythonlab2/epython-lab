@@ -1,21 +1,18 @@
-# app/auth/auth.py
-
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import (
     create_access_token, create_refresh_token,
     set_access_cookies, set_refresh_cookies,
-    unset_jwt_cookies, jwt_required, get_jwt_identity
+    unset_jwt_cookies, jwt_required
 )
 from marshmallow import ValidationError
 
 from app.models.user import User, Role
 from app.extensions import db
 from .schemas import RegisterSchema, LoginSchema
-from .utils import roles_required
-from .utils import get_current_user  # Utility to get current user from JWT
-
+from .utils import roles_required, get_current_user
+from datetime import timedelta
 # -----------------------------
-# Blueprint setup
+# Blueprint Setup
 # -----------------------------
 auth_bp = Blueprint('auth', __name__)
 
@@ -24,52 +21,31 @@ register_schema = RegisterSchema()
 login_schema = LoginSchema()
 
 
+# -----------------------------
+# Register User (Create New User)
+# -----------------------------
 @auth_bp.route('/users/create', methods=['POST'])
-@jwt_required(optional=True)
+@jwt_required()
 def register():
-    """
-    Create a new user with role assignment.
-
-    - Anyone can create users with role 'viewer' (default).
-    - Only users with 'root' role can assign other roles.
-    """
+    """Create a new user with role assignment."""
     try:
         data = register_schema.load(request.json)
     except ValidationError as err:
         return jsonify(err.messages), 400
 
-    existing_user = User.query.filter(
-        (User.username == data['username']) | (User.email == data['email'])
-    ).first()
-
-    if existing_user:
+    # Check for existing user
+    if User.query.filter((User.username == data['username']) | (User.email == data['email'])).first():
         return jsonify({"msg": "User with this username or email already exists"}), 400
 
     requested_role_name = data.get('role', 'viewer').lower()
-
-    # Check role exists
-    role = Role.query.filter_by(name=requested_role_name).first()
-    if not role:
-        return jsonify({"msg": f"Role '{requested_role_name}' does not exist"}), 400
-
-    # Get current authenticated user (if any)
     current_user = get_current_user()
-    print(current_user)
-    # print(current_user.role_name)
 
-    if requested_role_name == 'admin':
-        # Only root can assign admin role
-        if not current_user or not current_user.has_role('root'):
-            return jsonify({"msg": "Insufficient permissions to assign admin role"}), 403
+    role = get_role_for_current_user(current_user, requested_role_name)
+    if not role:
+        return jsonify({"msg": f"Role '{requested_role_name}' does not exist or insufficient permissions."}), 400
 
-    elif requested_role_name == 'editor':
-        # Allow both root and admin to assign editor role
-        if not current_user or not (current_user.has_role('root') or current_user.has_role('admin')):
-            return jsonify({"msg": "Insufficient permissions to assign editor role"}), 403
-
-    # Create user
     user = User(username=data['username'], email=data['email'])
-    user.set_password(data['password'])
+    user.set_password(data['password'])  # Ensure password is hashed before storing it
     user.roles.append(role)
 
     db.session.add(user)
@@ -86,6 +62,15 @@ def register():
     }), 201
 
 
+def get_role_for_current_user(current_user, requested_role_name):
+    """Returns the role for the current user based on permissions."""
+    if current_user.has_role('root'):
+        return Role.query.filter_by(name=requested_role_name).first()
+    elif current_user.has_role('admin') and requested_role_name not in ['admin', 'root']:
+        return Role.query.filter_by(name=requested_role_name).first()
+    return None
+
+
 # -----------------------------
 # User Login
 # -----------------------------
@@ -100,7 +85,8 @@ def login():
     if not user or not user.check_password(data['password']):
         return jsonify({"msg": "Invalid username or password"}), 401
 
-    access_token = create_access_token(identity=user.username)
+    # Implement access token expiration (e.g., 15 minutes for access token)
+    access_token = create_access_token(identity=user.username, expires_delta=timedelta(minutes=15))
     refresh_token = create_refresh_token(identity=user.username)
 
     resp = jsonify({
@@ -121,50 +107,44 @@ def login():
 @auth_bp.route('/refresh', methods=['POST'])
 @jwt_required(refresh=True)
 def refresh():
+    """Refresh JWT token."""
     current_user = get_jwt_identity()
-    new_access_token = create_access_token(identity=current_user)
+    new_access_token = create_access_token(identity=current_user, expires_delta=timedelta(minutes=15))
     return jsonify(access_token=new_access_token)
 
 
 # -----------------------------
-# Assign Role to User
-# -----------------------------
-@auth_bp.route('/assign-role', methods=['POST'])
-@roles_required('admin')
-def assign_role():
-    data = request.json
-    username = data.get('username')
-    role_name = data.get('role')
-
-    if not username or not role_name:
-        return jsonify({"msg": "username and role required"}), 400
-
-    user = User.query.filter_by(username=username).first()
-    role = Role.query.filter_by(name=role_name).first()
-
-    if not user or not role:
-        return jsonify({"msg": "User or role not found"}), 404
-
-    if role not in user.roles:
-        user.roles.append(role)
-        db.session.commit()
-
-    return jsonify({"msg": f"Role '{role_name}' assigned to {username}"}), 200
-
-
-# -----------------------------
-# List, Update, Delete Users (Admin)
+# List, Update, Delete Users (Admin Only)
 # -----------------------------
 @auth_bp.route('/users', methods=['GET'])
-@roles_required('root')
+@jwt_required()
 def get_users():
-    limit = int(request.args.get('limit', 10))
-    offset = int(request.args.get('offset', 0))
+    """Retrieve a list of users with filtering and pagination."""
+    current_user = get_current_user()
+    limit, offset = int(request.args.get('limit', 10)), int(request.args.get('offset', 0))
 
-    query = User.query.order_by(User.created_at.desc())
+    query = User.query
+    search = request.args.get('search', '').strip()
+    role = request.args.get('role', '').strip()
+    status = request.args.get('status', '').strip()
+
+    if search:
+        query = query.filter((User.username.ilike(f'%{search}%')) | (User.email.ilike(f'%{search}%')))
+    if role:
+        query = query.filter(User.roles.any(name=role))
+    if status:
+        query = query.filter(User.is_active == (status == 'active'))
+
+    if current_user.has_role('root'):
+        pass
+    elif current_user.has_role('admin'):
+        query = query.filter(~User.roles.any(name='admin'), ~User.roles.any(name='root'))
+    else:
+        return jsonify({"msg": "You do not have permission to view users."}), 403
+
     total = query.count()
-
     users = query.limit(limit).offset(offset).all()
+
     return jsonify({
         "total": total,
         "users": [user.to_dict() for user in users]
@@ -172,9 +152,19 @@ def get_users():
 
 
 @auth_bp.route('/users/<int:user_id>', methods=['GET'])
-@roles_required('admin')
+@jwt_required()
 def get_user(user_id):
+    current_user = get_current_user()
     user = User.query.get_or_404(user_id)
+
+    if current_user.has_role('root'):
+        pass  # Root users can view any user
+    elif current_user.has_role('admin'):
+        if user.has_role('admin') or user.has_role('root'):
+            return jsonify({"msg": "You do not have permission to view this user's details."}), 403
+    else:
+        return jsonify({"msg": "You do not have permission to view user details."}), 403
+
     return jsonify({
         "id": user.id,
         "username": user.username,
@@ -185,24 +175,73 @@ def get_user(user_id):
 
 
 @auth_bp.route('/users/<int:user_id>', methods=['PUT'])
-@roles_required('admin')
+@jwt_required()
 def update_user(user_id):
+    """Update user details and roles."""
     user = User.query.get_or_404(user_id)
     data = request.json
+    current_user = get_current_user()
+
+    if current_user.has_role('root'):
+        update_user_details(user, data)
+        update_user_roles(user, data.get('roles', []))
+    elif current_user.has_role('admin') and not (user.has_role('root') or user.has_role('admin')):
+        update_user_details(user, data)
+        if 'roles' in data:
+            roles = data['roles']
+            if any(role in ['admin', 'root'] for role in roles):
+                return jsonify({"msg": "Admins cannot assign 'admin' or 'root' roles."}), 403
+            update_user_roles(user, roles)
+    else:
+        return jsonify({"msg": "Insufficient permissions to update user."}), 403
+
+    db.session.commit()
+
+    return jsonify({
+        "msg": "User updated successfully",
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "is_active": user.is_active,
+            "roles": [role.name for role in user.roles]
+        }
+    })
+
+
+def update_user_details(user, data):
+    """Update the basic details of the user."""
     user.username = data.get('username', user.username)
     user.email = data.get('email', user.email)
     user.is_active = data.get('is_active', user.is_active)
-    db.session.commit()
-    return jsonify({"msg": "User updated successfully"})
+
+
+def update_user_roles(user, roles):
+    """Update the roles of the user."""
+    user.roles = []  # Clear existing roles
+    for role_name in roles:
+        role = Role.query.filter_by(name=role_name).first()
+        if role:
+            user.roles.append(role)
 
 
 @auth_bp.route('/users/<int:user_id>', methods=['DELETE'])
-@roles_required('admin')
+@jwt_required()
 def delete_user(user_id):
+    """Delete a user."""
     user = User.query.get_or_404(user_id)
-    db.session.delete(user)
-    db.session.commit()
-    return jsonify({"msg": "User deleted successfully"})
+    current_user = get_current_user()
+
+    if current_user.has_role('root'):
+        db.session.delete(user)
+        db.session.commit()
+        return jsonify({"msg": "User deleted successfully"})
+    elif current_user.has_role('admin') and not (user.has_role('root') or user.has_role('admin')):
+        db.session.delete(user)
+        db.session.commit()
+        return jsonify({"msg": "User deleted successfully"})
+
+    return jsonify({"msg": "Insufficient permissions to delete user."}), 403
 
 
 # -----------------------------

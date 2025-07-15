@@ -3,26 +3,49 @@
 {% block header_title %}Manage Users{% endblock %}
 
 {% block content %}
+<!-- Main Header Section -->
 <div class="flex items-center justify-between mb-6">
   <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100">User Management</h2>
   <button id="open-add-user-modal"
-          class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl shadow-md hover:bg-blue-700 transition">
-    <i data-lucide="user-plus" class="w-4 h-4"></i> Add User
+          class="inline-flex items-center gap-2 px-5 py-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition duration-200">
+    <i data-lucide="user-plus" class="w-5 h-5"></i> Add User
   </button>
 </div>
 
-<!-- Filters -->
-<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+<!-- Filters Section -->
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+  <!-- Search by Username or Email -->
   <div class="relative w-full sm:max-w-xs">
     <input id="search-input" type="text" placeholder="Search by username or email"
-           class="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-600">
-    <div class="absolute left-3 top-2.5 text-gray-400">
-      <i data-lucide="search" class="w-4 h-4"></i>
+           class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-blue-600 transition duration-200">
+    <div class="absolute left-3 top-1/2 pl-3 transform -translate-y-1/2 text-gray-400">
+      <i data-lucide="search" class="w-5 h-5"></i>
     </div>
+  </div>
+
+  <!-- Filter by Role -->
+  <div class="relative w-full sm:max-w-xs">
+    <select id="role-filter"
+            class="w-full pl-4 pr-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-blue-600 transition duration-200">
+      <option value="">Filter by Role</option>
+      <option value="admin">Admin</option>
+      <option value="editor">Editor</option>
+      <option value="viewer">Viewer</option>
+    </select>
+  </div>
+
+  <!-- Filter by Status -->
+  <div class="relative w-full sm:max-w-xs">
+    <select id="status-filter"
+            class="w-full pl-4 pr-4 py-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-blue-600 transition duration-200">
+      <option value="">Filter by Status</option>
+      <option value="active">Active</option>
+      <option value="inactive">Inactive</option>
+    </select>
   </div>
 </div>
 
-<!-- User Table -->
+<!-- User Table Section -->
 <div class="bg-white p-6 rounded-xl shadow-md dark:bg-gray-900 dark:shadow-none border border-gray-200 dark:border-gray-700 overflow-x-auto">
   <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4">Users</h3>
   <table class="w-full text-sm text-left whitespace-nowrap">
@@ -37,7 +60,7 @@
       </tr>
     </thead>
     <tbody id="user-table-body" class="text-gray-700 dark:text-gray-300 divide-y divide-gray-100 dark:divide-gray-800">
-      <!-- Dynamic Rows -->
+      <!-- Dynamic User Rows will be inserted here -->
     </tbody>
   </table>
 </div>
@@ -46,11 +69,16 @@
 <div class="flex justify-between items-center mt-6 text-sm text-gray-600 dark:text-gray-300">
   <div id="pagination-summary">Loading users...</div>
   <div class="flex gap-2">
-    <button id="prev-page" class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-sm disabled:opacity-50" disabled>
-      <i data-lucide="chevron-left" class="w-4 h-4"></i> Previous
+    <button id="prev-page"
+            class="flex items-center justify-center px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-sm disabled:opacity-50"
+            disabled>
+      <i data-lucide="chevron-left" class="w-4 h-4"></i>
+      <span class="ml-1">Previous</span>
     </button>
-    <button id="next-page" class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-sm">
-      Next <i data-lucide="chevron-right" class="w-4 h-4"></i>
+    <button id="next-page"
+            class="flex items-center justify-center px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-sm">
+      <span class="mr-1">Next</span>
+      <i data-lucide="chevron-right" class="w-4 h-4"></i>
     </button>
   </div>
 </div>
@@ -98,27 +126,100 @@
   </div>
 </div>
 
-<script type="module">
-  import { initUserTable } from '/static/js/user_table.js';
-  import { initAddUserModal } from '/static/js/user_modal.js';
+<!-- Edit User Modal -->
+<div id="edit-user-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+  <div class="bg-white dark:bg-gray-900 p-6 rounded-xl w-full max-w-md border dark:border-gray-800 shadow-xl">
+    <h3 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-100">Edit User</h3>
+    <form id="edit-user-form" class="space-y-4">
+      <input type="hidden" name="user_id" id="edit-user-id">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Username</label>
+        <input name="username" id="edit-username" type="text" required
+               class="w-full mt-1 px-4 py-2 border rounded-lg dark:bg-gray-800 dark:text-white dark:border-gray-700">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
+        <input name="email" id="edit-email" type="email" required
+               class="w-full mt-1 px-4 py-2 border rounded-lg dark:bg-gray-800 dark:text-white dark:border-gray-700">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Role</label>
+        <select name="role" id="edit-role"
+                class="w-full mt-1 px-4 py-2 border rounded-lg dark:bg-gray-800 dark:text-white dark:border-gray-700">
+          <option value="admin">Admin</option>
+          <option value="editor">Editor</option>
+          <option value="viewer">Viewer</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
+        <select name="status" id="edit-status"
+                class="w-full mt-1 px-4 py-2 border rounded-lg dark:bg-gray-800 dark:text-white dark:border-gray-700">
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+      </div>
+      <div class="flex justify-end gap-3 mt-6">
+        <button type="button" id="cancel-edit-user"
+                class="px-4 py-2 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+          Cancel
+        </button>
+        <button type="submit"
+                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow">
+          Save Changes
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
 
-  const currentUserRole = 'admin'; // dynamically replace if needed
+<script type="module">
+  import { initUserTable } from '/static/api/user_table.js';
+  import { initAddUserModal } from '/static/api/add_user_modal.js';
+  import { debounce } from '/static/utils/debounce.js';
+
+  const currentUserRole = 'admin';
+
+  // Initialize user table functionality
   const userTable = initUserTable({ currentUserRole });
+
+  // Initialize the modal for adding a new user
   initAddUserModal(userTable.reload);
 
-  // Modal open/close transitions
+  // Handle modal open/close transitions
   const modal = document.getElementById('add-user-modal');
   const openBtn = document.getElementById('open-add-user-modal');
   const cancelBtn = document.getElementById('cancel-add-user');
+  const cancelEditBtn = document.getElementById('cancel-edit-user');
 
+  // Open modal when "Add User" button is clicked
   openBtn?.addEventListener('click', () => {
     modal.classList.remove('hidden');
   });
 
+  // Close modal when "Cancel" button is clicked
   cancelBtn?.addEventListener('click', () => {
     modal.classList.add('hidden');
+
   });
 
-  
+  // Handle modal open/close transitions for Edit User Modal
+ const editUserModal = document.getElementById('edit-user-modal');
+ const cancelEditUserBtn = document.getElementById('cancel-edit-user');
+
+ // Close Edit User modal when "Cancel" button is clicked
+ cancelEditUserBtn?.addEventListener('click', () => {
+   editUserModal.classList.add('hidden');
+ });
+
+  // Apply debounce on filter change events
+  document.getElementById('role-filter').addEventListener('change', debounce(function() {
+    userTable.applyFilters();
+  }, 500));
+
+  document.getElementById('status-filter').addEventListener('change', debounce(function() {
+    userTable.applyFilters();
+  }, 500));
+
 </script>
 {% endblock %}
