@@ -1,5 +1,3 @@
-# app/__init__.py
-
 from flask import Flask, request, redirect
 from flask_swagger_ui import get_swaggerui_blueprint
 
@@ -8,14 +6,14 @@ from app.routes import register_routes
 from app.auth import register_auth_routes
 from app.cli import create_admin, seed_roles
 
-
-def create_app():
+def create_app(config_name="config.Config"):
     """
     Flask application factory.
+    Accepts config_name to load different configs (e.g., testing).
     Initializes and configures the Flask app with extensions, blueprints, CLI commands, and JWT error handlers.
     """
     app = Flask(__name__, static_url_path='/static')
-    app.config.from_object("config.Config")
+    app.config.from_object(config_name)
 
     # ----------------------------
     # Initialize Flask extensions
@@ -34,8 +32,8 @@ def create_app():
     # Register Swagger UI for API docs
     # ----------------------------
     swaggerui_blueprint = get_swaggerui_blueprint(
-        '/docs',                            # URL prefix for docs
-        '/static/swagger.json',             # Path to the OpenAPI spec
+        '/docs',
+        '/static/swagger.json',
         config={'app_name': "Tutorials API"}
     )
     app.register_blueprint(swaggerui_blueprint, url_prefix='/docs')
@@ -50,7 +48,7 @@ def create_app():
     # Register custom CLI commands
     # ----------------------------
     app.cli.add_command(create_admin)
-    app.cli.add_command(seed_roles)  # Add this line to register seed_roles
+    app.cli.add_command(seed_roles)
 
     # ----------------------------
     # JWT error handlers
@@ -62,30 +60,21 @@ def create_app():
             response.headers["Pragma"] = "no-cache"
             response.headers["Expires"] = "0"
         return response
-    
+
     @jwt.unauthorized_loader
     def handle_missing_token(reason):
-        """
-        Handle missing JWT (e.g., missing cookie). Redirect to login for HTML requests.
-        """
         if request.accept_mimetypes.accept_html:
             return redirect('/dcp/auth/login')
         return {"msg": reason}, 401
 
     @jwt.invalid_token_loader
     def handle_invalid_token(reason):
-        """
-        Handle invalid JWT (e.g., malformed token). Redirect to login for HTML requests.
-        """
         if request.accept_mimetypes.accept_html:
             return redirect('/dcp/auth/login')
         return {"msg": reason}, 401
 
     @jwt.expired_token_loader
     def handle_expired_token(jwt_header, jwt_payload):
-        """
-        Handle expired JWTs. Redirect to login for HTML requests.
-        """
         if request.accept_mimetypes.accept_html:
             return redirect('/dcp/auth/login')
         return {"msg": "Token has expired"}, 401

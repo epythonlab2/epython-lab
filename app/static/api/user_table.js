@@ -110,6 +110,9 @@ export function initUserTable({
                  <i data-lucide="x-circle" class="w-4 h-4"></i> Inactive
                </span>`}
         </td>
+
+        <td class="px-6 py-3">${user.last_login}</td>
+        
         <td class="px-6 py-3 text-right">
           <a href="#"
              class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200 text-sm font-medium mr-4 edit-user-btn"
@@ -159,7 +162,9 @@ export function initUserTable({
       duration: 4000,
       gravity: 'top',
       position: 'right',
-      background: colors[type] || colors.info,
+      style: {
+        background: colors[type] || colors.info,
+      },
       close: true
     }).showToast();
   }
