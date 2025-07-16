@@ -101,7 +101,9 @@ export function initAddUserModal(reloadUsersCallback) {
       duration: 4000,
       gravity: 'top',
       position: 'right',
-      backgroundColor: colors[type] || colors.info,
+      style: {
+        background: colors[type] || colors.info,
+      },
       close: true
     }).showToast();
   }

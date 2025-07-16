@@ -197,7 +197,7 @@
       const data = await loginUser(credentials);
       window.location.href = '/dcp/dashboard';
     } catch (err) {
-      loginError.textContent = err.response?.data?.message || 'Invalid credentials. Please try again.';
+      loginError.textContent = err.response?.data?.msg || 'Invalid credentials. Please try again.';
       loginError.style.opacity = 1;
       loginError.style.maxHeight = '100px';
 

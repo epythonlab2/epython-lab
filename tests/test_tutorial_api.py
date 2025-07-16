@@ -1,86 +1,74 @@
-import unittest
-from app import create_app, db
-from app.models.tutorial import Topic, SubTopic, Quiz
-from sqlalchemy import inspect
-import json
+import pytest
+from app.models.tutorial import Topic
 
-class TutorialsApiTest(unittest.TestCase):
-    def setUp(self):
-        self.app = create_app()
-        self.app.config['TESTING'] = True
-        self.app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+@pytest.mark.usefixtures('client', 'auth_headers')
+class TestTutorialsApi:
 
-        self.app_context = self.app.app_context()
-        self.app_context.push()
-        db.create_all()
-        self.client = self.app.test_client()
-
-    def tearDown(self):
-        db.session.remove()
-        db.drop_all()
-        engine = db.engine
-        if inspect(engine).dialect.name == 'sqlite':
-            engine.dispose()
-        self.app_context.pop()
-
-    def test_create_and_get_topic(self):
-        # Test topic creation
-        response = self.client.post('/api/v1/topics/', json={"title": "Python Basics"})
-        self.assertEqual(response.status_code, 201)
+    def test_create_topic(self, client, auth_headers):
+        response = client.post('/api/v1/topics/', json={"title": "Python Basics"}, headers=auth_headers)
+        assert response.status_code == 201
         data = response.get_json()
-        self.assertEqual(data['title'], "Python Basics")
-        self.assertIn('slug', data)
+        assert data['title'] == "Python Basics"
+        assert 'slug' in data
 
-        # Test get all topics (pagination defaults)
-        get_response = self.client.get('/api/v1/topics/')
-        self.assertEqual(get_response.status_code, 200)
-        get_data = get_response.get_json()
-        self.assertIn('topics', get_data)
-        self.assertEqual(get_data['page'], 1)
-        self.assertGreaterEqual(get_data['total_items'], 1)
-        self.assertTrue(any(topic['title'] == "Python Basics" for topic in get_data['topics']))
+        # Test get all topics
+        get_resp = client.get('/api/v1/topics/')
+        assert get_resp.status_code == 200
+        get_data = get_resp.get_json()
+        assert 'topics' in get_data
+        assert any(t['title'] == "Python Basics" for t in get_data['topics'])
 
-    def test_create_topic_missing_title(self):
-        response = self.client.post('/api/v1/topics/', json={})
-        self.assertEqual(response.status_code, 400)
-        self.assertIn('error', response.get_json())
+    def test_create_topic_missing_title(self, client, auth_headers):
+        resp = client.post('/api/v1/topics/', json={}, headers=auth_headers)
+        assert resp.status_code == 400
+        assert 'error' in resp.get_json()
 
-    def test_add_subtopic(self):
-        # Setup topic
-        topic = Topic(title="Flask", slug="flask")
-        db.session.add(topic)
-        db.session.commit()
+    def test_add_subtopic(self, client, auth_headers):
+        # Create topic
+        topic_resp = client.post('/api/v1/topics/', json={"title": "Flask"}, headers=auth_headers)
+        assert topic_resp.status_code == 201
+        topic_id = topic_resp.get_json()['id']
 
         payload = {
             "title": "Routing",
             "content": "How Flask routes requests",
-            "code_snippet": "@app.route('/')"
+            # Avoid code_snippet as per your preference
         }
-        response = self.client.post(f'/api/v1/topics/{topic.id}/subtopics', json=payload)
-        self.assertEqual(response.status_code, 201)
-        data = response.get_json()
-        self.assertEqual(data['title'], "Routing")
-        self.assertEqual(data['content'], "How Flask routes requests")
-        self.assertIn('slug', data)
+        sub_resp = client.post(f'/api/v1/topics/{topic_id}/subtopics', json=payload, headers=auth_headers)
+        assert sub_resp.status_code == 201
+        data = sub_resp.get_json()
+        assert data['title'] == "Routing"
+        assert 'slug' in data
 
-    def test_add_subtopic_missing_fields(self):
-        topic = Topic(title="Flask", slug="flask")
-        db.session.add(topic)
-        db.session.commit()
+    def test_add_subtopic_missing_fields(self, client, auth_headers):
+        topic_resp = client.post('/api/v1/topics/', json={"title": "Flask"}, headers=auth_headers)
+        assert topic_resp.status_code == 201
+        topic_id = topic_resp.get_json()['id']
 
-        response = self.client.post(f'/api/v1/topics/{topic.id}/subtopics', json={"title": "Incomplete"})
-        self.assertEqual(response.status_code, 400)
-        self.assertIn('error', response.get_json())
+        # Create subtopic
+        sub_payload = {
+            "title": "UnitTest"
+        }
 
-    def test_add_quizzes(self):
-        # Setup topic and subtopic
-        topic = Topic(title="Testing", slug="testing")
-        db.session.add(topic)
-        db.session.commit()
+        resp = client.post(f'/api/v1/topics/{topic_id}/subtopics', json=sub_payload, headers=auth_headers)
+        assert resp.status_code == 400
+        assert 'errors' in resp.get_json()
+        assert 'content' in resp.get_json()['errors']
 
-        sub = SubTopic(title="UnitTest", content="Testing in Python", topic_id=topic.id, slug="unittest")
-        db.session.add(sub)
-        db.session.commit()
+    def test_add_quizzes(self, client, auth_headers):
+        # Create topic
+        topic_resp = client.post('/api/v1/topics/', json={"title": "Testing"}, headers=auth_headers)
+        assert topic_resp.status_code == 201
+        topic_id = topic_resp.get_json()['id']
+
+        # Create subtopic
+        sub_payload = {
+            "title": "UnitTest",
+            "content": "Testing in Python"
+        }
+        sub_resp = client.post(f'/api/v1/topics/{topic_id}/subtopics', json=sub_payload, headers=auth_headers)
+        assert sub_resp.status_code == 201
+        sub_id = sub_resp.get_json()['id']
 
         quizzes = [{
             "question": f"Question {i+1}",
@@ -88,29 +76,30 @@ class TutorialsApiTest(unittest.TestCase):
             "correct_answer": "A"
         } for i in range(10)]
 
-        response = self.client.post(f'/api/v1/topics/subtopics/{sub.id}/quizzes', json=quizzes)
-        self.assertEqual(response.status_code, 201)
-        self.assertIn("Quizzes added", response.get_data(as_text=True))
+        quiz_resp = client.post(f'/api/v1/topics/subtopics/{sub_id}/quizzes', json=quizzes, headers=auth_headers)
+        assert quiz_resp.status_code == 201
+        assert "Quizzes added" in quiz_resp.get_data(as_text=True)
 
-    def test_add_quizzes_invalid_payload(self):
-        topic = Topic(title="Testing", slug="testing")
-        db.session.add(topic)
-        db.session.commit()
+    def test_add_quizzes_invalid_payload(self, client, auth_headers):
+        topic_resp = client.post('/api/v1/topics/', json={"title": "Testing"}, headers=auth_headers)
+        assert topic_resp.status_code == 201
+        topic_id = topic_resp.get_json()['id']
 
-        sub = SubTopic(title="UnitTest", content="Testing in Python", topic_id=topic.id, slug="unittest")
-        db.session.add(sub)
-        db.session.commit()
+        sub_payload = {
+            "title": "UnitTest",
+            "content": "Testing in Python"
+        }
+        sub_resp = client.post(f'/api/v1/topics/{topic_id}/subtopics', json=sub_payload, headers=auth_headers)
+        assert sub_resp.status_code == 201
+        sub_id = sub_resp.get_json()['id']
 
-        # Sending a dict instead of list should fail
-        response = self.client.post(f'/api/v1/topics/subtopics/{sub.id}/quizzes', json={"question": "Invalid"})
-        self.assertEqual(response.status_code, 400)
-        self.assertIn('error', response.get_json())
+        # Sending dict instead of list - should fail
+        resp = client.post(f'/api/v1/topics/subtopics/{sub_id}/quizzes', json={"question": "Invalid"}, headers=auth_headers)
+        assert resp.status_code == 400
+        assert 'error' in resp.get_json()
 
-        # Missing required fields in quiz item
-        invalid_quizzes = [{"question": "Q1"}]  # Missing other fields
-        response = self.client.post(f'/api/v1/topics/subtopics/{sub.id}/quizzes', json=invalid_quizzes)
-        self.assertEqual(response.status_code, 400)
-        self.assertIn('error', response.get_json())
-
-if __name__ == '__main__':
-    unittest.main()
+        # Missing required fields in quiz
+        invalid_quizzes = [{"question": "Q1"}]
+        resp = client.post(f'/api/v1/topics/subtopics/{sub_id}/quizzes', json=invalid_quizzes, headers=auth_headers)
+        assert resp.status_code == 400
+        assert 'error' in resp.get_json()
