@@ -363,19 +363,20 @@ def delete_user(user_id):
 
     if current_user.has_role('root') or \
        (current_user.has_role('admin') and not (user.has_role('root') or user.has_role('admin'))):
-        db.session.delete(user)
-        db.session.commit()
+
         log_audit_action(
             actor_id=current_user.id,
             target_user_id=user.id,
             action_type='delete',
             description=f"Deleted user '{user.username}'"
         )
+        db.session.delete(user)
+        db.session.commit()
         return jsonify({"msg": "User deleted successfully"})
 
     return jsonify({"msg": "Insufficient permissions to delete user."}), 403
 
-# 
+#
 # @auth_bp.route('/audit/logs', methods=['GET'])
 # @jwt_required()
 # def get_audit_logs():
