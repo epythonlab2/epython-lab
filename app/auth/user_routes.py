@@ -375,30 +375,30 @@ def delete_user(user_id):
 
     return jsonify({"msg": "Insufficient permissions to delete user."}), 403
 
-
-@auth_bp.route('/audit/logs', methods=['GET'])
-@jwt_required()
-def get_audit_logs():
-    """
-    Retrieve the latest 100 audit log entries.
-    Only accessible to users with 'admin' or 'root' roles.
-
-    Returns:
-        JSON list of audit log entries.
-    """
-    current_user = get_current_user()
-    if not current_user.has_role('admin') and not current_user.has_role('root'):
-        return jsonify({"msg": "You do not have permission to view audit logs."}), 403
-
-    logs = AuditLog.query.order_by(AuditLog.timestamp.desc()).limit(100).all()
-    return jsonify([{
-        "id": log.id,
-        "action_type": log.action_type,
-        "actor": log.actor.username if log.actor else None,
-        "target_user": log.target_user.username if log.target_user else None,
-        "description": log.description,
-        "timestamp": log.timestamp.isoformat()
-    } for log in logs])
+# 
+# @auth_bp.route('/audit/logs', methods=['GET'])
+# @jwt_required()
+# def get_audit_logs():
+#     """
+#     Retrieve the latest 100 audit log entries.
+#     Only accessible to users with 'admin' or 'root' roles.
+#
+#     Returns:
+#         JSON list of audit log entries.
+#     """
+#     current_user = get_current_user()
+#     if not current_user.has_role('admin') and not current_user.has_role('root'):
+#         return jsonify({"msg": "You do not have permission to view audit logs."}), 403
+#
+#     logs = AuditLog.query.order_by(AuditLog.timestamp.desc()).limit(100).all()
+#     return jsonify([{
+#         "id": log.id,
+#         "action_type": log.action_type,
+#         "actor": log.actor.username if log.actor else None,
+#         "target_user": log.target_user.username if log.target_user else None,
+#         "description": log.description,
+#         "timestamp": log.timestamp.isoformat()
+#     } for log in logs])
 
 
 @auth_bp.route('/logout', methods=['POST'])
