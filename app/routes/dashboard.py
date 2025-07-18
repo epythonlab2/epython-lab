@@ -34,6 +34,16 @@ def dashboard():
 
     return render_template("dcp/dashboard.html", user=current_user)
 
+@bp.route('/dcp/analytics')
+@jwt_required()
+def analytics():
+    """
+    Render the main admin dashboard view.
+    JWT-protected route.
+    """
+    current_user = get_jwt_identity()
+
+    return render_template("dcp/analytics/audit_log_analytics.html", user=current_user)
 
 @bp.route('/dcp/admin/topics')
 @jwt_required()

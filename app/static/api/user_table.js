@@ -1,4 +1,4 @@
-import { fetchUsers, deleteUser, getUserById, updateUser } from '/static/api/user_api.js';
+import { fetchUsers, deleteUser, getUserById, updateUser, loginHistory } from '/static/api/auth_api.js';
 
 export function initUserTable({
   tableBodyId = 'user-table-body',
@@ -21,6 +21,43 @@ export function initUserTable({
     role: '',
     status: ''
   };
+
+  function showLoginHistoryModal(userId) {
+  const tbody = document.getElementById('login-history-body');
+  const modal = document.getElementById('login-history-modal');
+
+  if (!tbody || !modal) {
+    console.error('Login history modal or body not found');
+    return;
+  }
+
+  // Show loading row
+  tbody.innerHTML = '<tr><td colspan="5">Loading...</td></tr>';
+  modal.classList.remove('hidden'); // 👈 Show the modal now
+
+  loginHistory(userId)
+    .then(data => {
+      if (!data.length) {
+        tbody.innerHTML = '<tr><td colspan="5">No login history found.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = data.map(log => `
+        <tr>
+          <td class="py-1 px-2">${log.login_time}</td>
+          <td class="py-1 px-2">${log.ip}</td>
+          <td class="py-1 px-2">${log.country}</td>
+          <td class="py-1 px-2">${log.device}</td>
+          <td class="py-1 px-2">${log.browser}</td>
+        </tr>
+      `).join('');
+    })
+    .catch(err => {
+      console.error('Login history load error:', err);
+      tbody.innerHTML = '<tr><td colspan="5">Error loading history</td></tr>';
+    });
+}
+
 
   // Load users from API with filters
   async function loadUsers() {
@@ -112,7 +149,15 @@ export function initUserTable({
         </td>
 
         <td class="px-6 py-3">${user.last_login}</td>
-        
+        <td class="px-6 py-3">
+          <a href="#"
+             class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-200 text-sm font-medium mr-4 login-history-btn"
+             data-user-id="${user.id}">
+            History
+          </a>
+        </td>
+
+
         <td class="px-6 py-3 text-right">
           <a href="#"
              class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200 text-sm font-medium mr-4 edit-user-btn"
@@ -171,33 +216,42 @@ export function initUserTable({
 
   // Handle delete user action
   tableBody.addEventListener('click', async (e) => {
-    if (e.target.classList.contains('delete-user-btn')) {
-      const id = e.target.getAttribute('data-user-id');
-      if (confirm('Are you sure you want to delete this user?')) {
-        const deleteButton = e.target;
-        deleteButton.innerHTML = '<i class="w-4 h-4 animate-spin" data-lucide="loader"></i> Deleting...';
-        deleteButton.disabled = true;
+  // 🔹 Handle Login History
+  if (e.target.classList.contains('login-history-btn')) {
+    const userId = e.target.getAttribute('data-user-id');
+    await showLoginHistoryModal(userId);
+    return; // prevent fallthrough
+  }
 
-        try {
-          await deleteUser(id);
-          showToast('✅ User deleted successfully', 'success'); // Success toast
+  // 🔹 Handle Delete
+  if (e.target.classList.contains('delete-user-btn')) {
+    const id = e.target.getAttribute('data-user-id');
+    if (confirm('Are you sure you want to delete this user?')) {
+      const deleteButton = e.target;
+      deleteButton.innerHTML = '<i class="w-4 h-4 animate-spin" data-lucide="loader"></i> Deleting...';
+      deleteButton.disabled = true;
 
-          // Reload users after deletion
-          await loadUsers();  // Reload users after deletion
-        } catch (err) {
-          showToast('❌ Failed to delete user.', 'error'); // Error toast
-        } finally {
-          // Restore button text and re-enable it
-          deleteButton.innerHTML = 'Delete';
-          deleteButton.disabled = false;
-        }
+      try {
+        await deleteUser(id);
+        showToast('✅ User deleted successfully', 'success');
+        await loadUsers();
+      } catch (err) {
+        showToast('❌ Failed to delete user.', 'error');
+      } finally {
+        deleteButton.innerHTML = 'Delete';
+        deleteButton.disabled = false;
       }
     }
-    if (e.target.classList.contains('edit-user-btn')) {
-      const userId = e.target.getAttribute('data-user-id');
-      openEditUserModal(userId);  // Open the Edit Modal
-    }
-  });
+    return;
+  }
+
+  // 🔹 Handle Edit
+  if (e.target.classList.contains('edit-user-btn')) {
+    const userId = e.target.getAttribute('data-user-id');
+    openEditUserModal(userId);
+  }
+});
+
 
   // Open Edit User Modal
   async function openEditUserModal(userId) {

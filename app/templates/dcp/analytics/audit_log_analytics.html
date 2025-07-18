@@ -1,0 +1,198 @@
+{% extends "/dcp/components/base.html" %}
+
+{% block title %}Dashboard - Admin{% endblock %}
+{% block header_title %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="flex items-center justify-between mb-6">
+  <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100 tracking-tight flex items-center gap-2">
+    <i data-lucide="bar-chart-2" class="w-6 h-6 text-blue-600"></i>
+    Audit & Session Analytics
+  </h2>
+</div>
+
+<!-- Audit Summary -->
+<section>
+  <h3 class="text-base font-semibold text-gray-600 dark:text-gray-300 mb-4 pt-4 tracking-wide flex items-center gap-2">
+    <i data-lucide="search" class="w-5 h-5 text-gray-500 dark:text-gray-400"></i>
+    Audit Summary
+  </h3>
+  <div id="audit-summary" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6"></div>
+</section>
+
+<!-- Action Frequency -->
+<section>
+  <h3 class="text-base font-semibold text-gray-600 dark:text-gray-300 mb-4 pt-4 tracking-wide flex items-center gap-2">
+    <i data-lucide="activity" class="w-5 h-5 text-gray-500 dark:text-gray-400"></i>
+    Frequent Actions
+  </h3>
+  <div class="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-md ring-1 ring-gray-200 dark:ring-gray-700 hover:shadow-lg transition-shadow duration-200">
+    <canvas id="action-type-chart" class="w-full h-64"></canvas>
+  </div>
+</section>
+
+<!-- Top Admins & Geo Distribution -->
+<section class="flex flex-col lg:flex-row gap-6">
+  <!-- Top Admins -->
+  <div class="w-full lg:w-1/2">
+    <h3 class="text-base font-semibold text-gray-600 dark:text-gray-300 mb-4 pt-4 tracking-wide flex items-center gap-2">
+      <i data-lucide="award" class="w-5 h-5 text-gray-500 dark:text-gray-400"></i>
+      Top Admins
+    </h3>
+    <div class="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 overflow-x-auto">
+      <table class="w-full text-xs text-left whitespace-nowrap">
+        <thead class="text-gray-500 dark:text-gray-400 border-b border-gray-300 dark:border-gray-700">
+          <tr>
+            <th class="py-2 px-3">Admin</th>
+            <th class="py-2 px-3">Total Actions</th>
+          </tr>
+        </thead>
+        <tbody id="top-admins" class="text-gray-700 dark:text-gray-300"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Geo Distribution -->
+  <div class="w-full lg:w-1/2">
+    <h3 class="text-base font-semibold text-gray-600 dark:text-gray-300 mb-4 pt-4 tracking-wide flex items-center gap-2">
+      <i data-lucide="map-pin" class="w-5 h-5 text-gray-500 dark:text-gray-400"></i>
+      Logins by Country
+    </h3>
+    <div class="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 overflow-x-auto">
+      <table class="w-full text-xs text-left whitespace-nowrap">
+        <thead class="text-gray-500 dark:text-gray-400 border-b border-gray-300 dark:border-gray-700">
+          <tr>
+            <th class="py-2 px-3">Country</th>
+            <th class="py-2 px-3">Logins</th>
+          </tr>
+        </thead>
+        <tbody id="country-distribution" class="text-gray-700 dark:text-gray-300"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- Inactive Users -->
+<section>
+  <h3 class="text-base font-semibold text-gray-600 dark:text-gray-300 mb-4 pt-4 tracking-wide flex items-center gap-2">
+    <i data-lucide="user-x" class="w-5 h-5 text-gray-500 dark:text-gray-400"></i>
+    Inactive Users (30 days)
+  </h3>
+  <div class="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 overflow-x-auto">
+    <table class="w-full text-xs text-left whitespace-nowrap">
+      <thead class="text-gray-500 dark:text-gray-400 border-b border-gray-300 dark:border-gray-700">
+        <tr>
+          <th class="py-2 px-3">User</th>
+          <th class="py-2 px-3">Role</th>
+          <th class="py-2 px-3">Last Seen</th>
+        </tr>
+      </thead>
+      <tbody id="inactive-users" class="text-gray-700 dark:text-gray-300"></tbody>
+    </table>
+    <!-- Pagination container moved outside table -->
+    <div id="inactive-users-pagination" class="mt-4 flex justify-center items-center"></div>
+  </div>
+</section>
+
+<!-- Login Trends -->
+<section>
+  <div class="flex justify-between items-center mb-4 pt-4">
+    <h3 class="text-base font-semibold text-gray-600 dark:text-gray-300 tracking-wide flex items-center gap-2">
+      <i data-lucide="trending-up" class="w-5 h-5 text-gray-500 dark:text-gray-400"></i>
+      Login Trends
+    </h3>
+    <span class="text-xs text-gray-400">(Last 30 Days)</span>
+  </div>
+  <div class="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-md ring-1 ring-gray-200 dark:ring-gray-700 hover:shadow-lg transition-shadow duration-200">
+    <canvas id="login-trend-chart" class="w-full h-64"></canvas>
+  </div>
+</section>
+
+<!-- Activity by Hour -->
+<section>
+  <h3 class="text-base font-semibold text-gray-600 dark:text-gray-300 mb-4 pt-4 tracking-wide flex items-center gap-2">
+    <i data-lucide="clock" class="w-5 h-5 text-gray-500 dark:text-gray-400"></i>
+    Activity by Hour
+  </h3>
+  <div class="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-md ring-1 ring-gray-200 dark:ring-gray-700 hover:shadow-lg transition-shadow duration-200">
+    <canvas id="login-hour-chart" class="w-full h-64"></canvas>
+  </div>
+</section>
+
+<!-- Weekly Activity -->
+<section>
+  <h3 class="text-base font-semibold text-gray-600 dark:text-gray-300 mb-4 pt-4 tracking-wide flex items-center gap-2">
+    <i data-lucide="calendar" class="w-5 h-5 text-gray-500 dark:text-gray-400"></i>
+    Weekly Activity
+  </h3>
+  <div class="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-md ring-1 ring-gray-200 dark:ring-gray-700 hover:shadow-lg transition-shadow duration-200">
+    <canvas id="weekly-activity-chart" class="w-full h-64"></canvas>
+  </div>
+</section>
+
+<!-- OS / Device / Browser Distribution -->
+<section>
+  <h3 class="text-base font-semibold text-gray-600 dark:text-gray-300 mb-4 pt-4 tracking-wide flex items-center gap-2">
+    <i data-lucide="globe" class="w-5 h-5 text-gray-500 dark:text-gray-400"></i>
+    OS / Device / Browser Distribution
+  </h3>
+  <div class="flex gap-6 overflow-x-auto">
+    <!-- Browser -->
+    <div class="bg-white dark:bg-gray-800 p-5 rounded-xl shadow w-1/3 min-w-[280px]">
+      <h4 class="text-sm font-semibold text-gray-700 dark:text-white mb-3 p-3 flex items-center gap-1">
+        <i data-lucide="monitor" class="w-4 h-4"></i> Browser Usage
+      </h4>
+      <div class="relative h-64">
+        <canvas id="browser-chart"></canvas>
+      </div>
+    </div>
+    <!-- OS -->
+    <div class="bg-white dark:bg-gray-800 p-5 rounded-xl shadow w-1/3 min-w-[280px]">
+      <h4 class="text-sm font-semibold text-gray-700 dark:text-white mb-3 p-3 flex items-center gap-1">
+        <i data-lucide="cpu" class="w-4 h-4"></i> Operating Systems
+      </h4>
+      <div class="relative h-64">
+        <canvas id="os-chart"></canvas>
+      </div>
+    </div>
+    <!-- Devices -->
+    <div class="bg-white dark:bg-gray-800 p-5 rounded-xl shadow w-1/3 min-w-[280px]">
+      <h4 class="text-sm font-semibold text-gray-700 dark:text-white mb-3 p-3 flex items-center gap-1">
+        <i data-lucide="smartphone" class="w-4 h-4"></i> Devices
+      </h4>
+      <div class="relative h-64">
+        <canvas id="device-chart"></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Recent Logs -->
+<section>
+  <h3 class="text-base font-semibold text-gray-600 dark:text-gray-300 mb-4 pt-4 tracking-wide flex items-center gap-2">
+    <i data-lucide="file-text" class="w-5 h-5 text-gray-500 dark:text-gray-400"></i>
+    Recent Logs
+  </h3>
+  <div class="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 overflow-x-auto">
+    <table class="w-full text-sm text-left whitespace-nowrap">
+      <thead class="text-gray-500 dark:text-gray-400 border-b border-gray-300 dark:border-gray-700">
+        <tr>
+          <th class="py-2 px-3">Timestamp</th>
+          <th class="py-2 px-3">Actor</th>
+          <th class="py-2 px-3">Action</th>
+          <th class="py-2 px-3">Target</th>
+          <th class="py-2 px-3">Description</th>
+        </tr>
+      </thead>
+      <tbody id="audit-table-body" class="text-gray-700 dark:text-gray-300 divide-y divide-gray-100 dark:divide-gray-800">
+        <!-- Dynamic rows inserted here -->
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script type="module" src="/static/api/audit_analytics.js"></script>
+{% endblock %}

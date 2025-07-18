@@ -1,4 +1,4 @@
-import { createUser } from '/static/api/user_api.js';
+import { createUser } from '/static/api/auth_api.js';
 
 export function initAddUserModal(reloadUsersCallback) {
   const modal = document.getElementById('add-user-modal');
