@@ -28,7 +28,7 @@
     Frequent Actions
   </h3>
   <div class="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-md ring-1 ring-gray-200 dark:ring-gray-700 hover:shadow-lg transition-shadow duration-200">
-    <canvas id="action-type-chart" class="w-full h-64"></canvas>
+    <canvas id="frequent-actions-chart" class="w-full h-64"></canvas>
   </div>
 </section>
 
@@ -40,8 +40,8 @@
       <i data-lucide="award" class="w-5 h-5 text-gray-500 dark:text-gray-400"></i>
       Top Admins
     </h3>
-    <div class="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 overflow-x-auto">
-      <table class="w-full text-xs text-left whitespace-nowrap">
+    <div class="table-responsive bg-white dark:bg-gray-900 p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 overflow-x-auto">
+      <table class="table-modern w-full text-xs text-left whitespace-nowrap">
         <thead class="text-gray-500 dark:text-gray-400 border-b border-gray-300 dark:border-gray-700">
           <tr>
             <th class="py-2 px-3">Admin</th>
@@ -59,8 +59,8 @@
       <i data-lucide="map-pin" class="w-5 h-5 text-gray-500 dark:text-gray-400"></i>
       Logins by Country
     </h3>
-    <div class="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 overflow-x-auto">
-      <table class="w-full text-xs text-left whitespace-nowrap">
+    <div class="table-responsive bg-white dark:bg-gray-900 p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 overflow-x-auto">
+      <table class="table-modern w-full text-xs text-left whitespace-nowrap">
         <thead class="text-gray-500 dark:text-gray-400 border-b border-gray-300 dark:border-gray-700">
           <tr>
             <th class="py-2 px-3">Country</th>
@@ -79,8 +79,8 @@
     <i data-lucide="user-x" class="w-5 h-5 text-gray-500 dark:text-gray-400"></i>
     Inactive Users (30 days)
   </h3>
-  <div class="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 overflow-x-auto">
-    <table class="w-full text-xs text-left whitespace-nowrap">
+  <div class="table-responsive bg-white dark:bg-gray-900 p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 overflow-x-auto">
+    <table class="table-modern w-full text-xs text-left whitespace-nowrap">
       <thead class="text-gray-500 dark:text-gray-400 border-b border-gray-300 dark:border-gray-700">
         <tr>
           <th class="py-2 px-3">User</th>
@@ -106,17 +106,6 @@
   </div>
   <div class="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-md ring-1 ring-gray-200 dark:ring-gray-700 hover:shadow-lg transition-shadow duration-200">
     <canvas id="login-trend-chart" class="w-full h-64"></canvas>
-  </div>
-</section>
-
-<!-- Activity by Hour -->
-<section>
-  <h3 class="text-base font-semibold text-gray-600 dark:text-gray-300 mb-4 pt-4 tracking-wide flex items-center gap-2">
-    <i data-lucide="clock" class="w-5 h-5 text-gray-500 dark:text-gray-400"></i>
-    Activity by Hour
-  </h3>
-  <div class="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-md ring-1 ring-gray-200 dark:ring-gray-700 hover:shadow-lg transition-shadow duration-200">
-    <canvas id="login-hour-chart" class="w-full h-64"></canvas>
   </div>
 </section>
 
@@ -174,7 +163,7 @@
     <i data-lucide="file-text" class="w-5 h-5 text-gray-500 dark:text-gray-400"></i>
     Recent Logs
   </h3>
-  <div class="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 overflow-x-auto">
+  <div class="table-responsive bg-white dark:bg-gray-900 p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 overflow-x-auto">
     <table class="w-full text-sm text-left whitespace-nowrap">
       <thead class="text-gray-500 dark:text-gray-400 border-b border-gray-300 dark:border-gray-700">
         <tr>
@@ -194,5 +183,5 @@
 
 <!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script type="module" src="/static/api/audit_analytics.js"></script>
+<script type="module" src="/static/api/audit/main.js"></script>
 {% endblock %}
