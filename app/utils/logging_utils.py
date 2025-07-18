@@ -23,6 +23,11 @@ def get_country_from_ip(ip_address: str) -> str:
         return "Unknown"
 
 def get_device_type(user_agent_string: str) -> str:
+    tv_keywords = ['smart-tv', 'hbbtv', 'netcast',
+     'appletv', 'googletv', 'tizen', 'webos',
+     'roku', 'aquos', 'sonybravia',
+    'androidtv', 'pov_tv', 'smarttv', 'tv']
+
     """Return the device type (Mobile, Tablet, Desktop, TV, Other)."""
     ua = parse_ua(user_agent_string)
     if ua.is_mobile:
@@ -31,8 +36,9 @@ def get_device_type(user_agent_string: str) -> str:
         return 'Tablet'
     if ua.is_pc:
         return 'Desktop'
-    if 'smart-tv' in ua.lower() or 'hbbtv' in ua.lower() or 'netcast' in ua.lower() or 'appletv' in ua.lower() or 'googletv' in ua.lower():
+    if any(keyword in ua.ua_string for keyword in tv_keywords):
         return 'TV'
+        
     return 'Other'
 
 
