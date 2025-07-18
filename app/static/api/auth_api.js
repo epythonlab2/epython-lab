@@ -56,7 +56,9 @@ export async function deleteUser(userId) {
 }
 
 // Get login history
-export async function loginHistory(userId) {
-  const res = await client.get(`/audit/user-login-history/${userId}`);
+export async function loginHistory(userId, page = 1, limit = 10, search = "") {
+  const res = await client.get(`/audit/user-login-history/${userId}`, {
+    params: { page, limit, search }
+  });
   return res.data;
 }

@@ -1,4 +1,4 @@
-import { fetchUsers, deleteUser, getUserById, updateUser, loginHistory } from '/static/api/auth_api.js';
+import { fetchUsers, deleteUser, getUserById, updateUser } from '/static/api/auth_api.js';
 
 export function initUserTable({
   tableBodyId = 'user-table-body',
@@ -21,42 +21,6 @@ export function initUserTable({
     role: '',
     status: ''
   };
-
-  function showLoginHistoryModal(userId) {
-  const tbody = document.getElementById('login-history-body');
-  const modal = document.getElementById('login-history-modal');
-
-  if (!tbody || !modal) {
-    console.error('Login history modal or body not found');
-    return;
-  }
-
-  // Show loading row
-  tbody.innerHTML = '<tr><td colspan="5">Loading...</td></tr>';
-  modal.classList.remove('hidden'); // 👈 Show the modal now
-
-  loginHistory(userId)
-    .then(data => {
-      if (!data.length) {
-        tbody.innerHTML = '<tr><td colspan="5">No login history found.</td></tr>';
-        return;
-      }
-
-      tbody.innerHTML = data.map(log => `
-        <tr>
-          <td class="py-1 px-2">${log.login_time}</td>
-          <td class="py-1 px-2">${log.ip}</td>
-          <td class="py-1 px-2">${log.country}</td>
-          <td class="py-1 px-2">${log.device}</td>
-          <td class="py-1 px-2">${log.browser}</td>
-        </tr>
-      `).join('');
-    })
-    .catch(err => {
-      console.error('Login history load error:', err);
-      tbody.innerHTML = '<tr><td colspan="5">Error loading history</td></tr>';
-    });
-}
 
 
   // Load users from API with filters

@@ -8,6 +8,7 @@ from app.models.log import AuditLog, SessionLog
 from app.models.user import User, Role
 from app.extensions import db
 from sqlalchemy.exc import SQLAlchemyError
+from app.utils.logging_utils import format_last_login
 
 bp = Blueprint("audit", __name__)
 
@@ -213,23 +214,35 @@ def top_admins():
 @bp.route("/user-login-history/<int:user_id>")
 def user_login_history(user_id):
     try:
-        logins = SessionLog.query.filter_by(user_id=user_id).order_by(
-            SessionLog.login_time.desc()
-        ).limit(10).all()
+        page = int(request.args.get('page', 1))
+        limit = int(request.args.get('limit', 10))
+        search = request.args.get('search', '').lower()
 
-        return jsonify([
-            {
-                "login_time": log.login_time.strftime("%Y-%m-%d %H:%M") if log.login_time else "N/A",
-                "ip": log.ip_address or "N/A",
-                "country": log.country or "N/A",
-                "device": log.device or "N/A",
-                "browser": log.browser or "N/A"
-            }
-            for log in logins
-        ])
-    except SQLAlchemyError as e:
+        query = SessionLog.query.filter_by(user_id=user_id)
+
+        if search:
+            search_filter = (SessionLog.ip_address.ilike(f"%{search}%")) | \
+                            (SessionLog.country.ilike(f"%{search}%")) | \
+                            (SessionLog.browser.ilike(f"%{search}%"))
+            query = query.filter(search_filter)
+
+        total = query.count()
+        logs = query.order_by(SessionLog.login_time.desc()).offset((page - 1) * limit).limit(limit).all()
+
+        results = [{
+            "login_time": format_last_login(log.login_time.strftime("%Y-%m-%d %H:%M")) if log.login_time else "N/A",
+            "ip": log.ip_address or "N/A",
+            "country": log.country or "N/A",
+            "device": log.device or "N/A",
+            "os": log.os or "N/A",
+            "browser": log.browser or "N/A"
+        } for log in logs]
+
+        return jsonify({"total": total, "data": results})
+    except Exception as e:
         print(f"[ERROR] Failed to fetch login history: {e}")
         return make_response(jsonify({"error": "Internal server error"}), 500)
+
 
 
 # =======================
