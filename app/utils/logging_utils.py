@@ -31,7 +31,7 @@ def get_device_type(user_agent_string: str) -> str:
         return 'Tablet'
     if ua.is_pc:
         return 'Desktop'
-    if ua.is_tv:
+    if 'smart-tv' in ua.lower() or 'hbbtv' in ua.lower() or 'netcast' in ua.lower() or 'appletv' in ua.lower() or 'googletv' in ua.lower():
         return 'TV'
     return 'Other'
 
