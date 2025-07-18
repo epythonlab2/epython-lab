@@ -3,6 +3,7 @@ from datetime import datetime
 from app.extensions import db
 
 class SessionLog(db.Model):
+    __tablename__ = 'session_log'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     ip_address = db.Column(db.String(45))
@@ -18,6 +19,7 @@ class SessionLog(db.Model):
 
 
 class AuditLog(db.Model):
+    __tablename__ = 'audit_log'
     id = db.Column(db.Integer, primary_key=True)
     action_type = db.Column(db.String(50))  # create, update, delete
     target_user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
