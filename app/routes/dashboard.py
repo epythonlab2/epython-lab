@@ -115,8 +115,10 @@ def show_subtopic_short(subtopic_slug):
     return render_template(
         "frontend/content.html",
         topic_slug=topic_slug,
-        subtopic_slug=subtopic_slug
+        subtopic_slug=subtopic_slug,
+        subtopic_id=subtopic.id  # ✅ REQUIRED
     )
+    
 @bp.route('/dcp/auth/users')
 @jwt_required()
 def user_management():

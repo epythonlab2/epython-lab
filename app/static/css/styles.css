@@ -441,7 +441,7 @@ mark.custom-highlight {
   }
 }
 
-/* Base table styling */
+/* Audit analytics Base table styling */
 .table-modern {
   width: 100%;
   border-collapse: separate;
@@ -538,4 +538,11 @@ mark.custom-highlight {
 .pagination-container button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Dashboard analytics styles */
+#engagementBar {
+  height: 100%;
+  min-height: 1rem; /* or keep h-4 from Tailwind, which is 1rem */
+  background-color: #22c55e; /* Tailwind’s green-500 */
 }

@@ -1,45 +1,35 @@
 {% extends "/frontend/base.html" %}
-{% block title %}{{subtopic_slug}}{% endblock %}
+{% block title %}{{ subtopic_slug }}{% endblock %}
 
 {% block content %}
 
-<!-- Ad Placeholder Top -->
+<!-- 📢 Ad Placeholder Top -->
 <section class="mt-12">
   <div class="bg-gray-50 dark:bg-gray-800 border border-dashed border-gray-300 dark:border-gray-600 p-6 rounded-xl text-center">
     <p class="text-gray-400 dark:text-gray-500">[Ad Placeholder]</p>
   </div>
 </section>
 
-<!-- Progress Bar Section
-<section class="mt-4 pl-3">
-  <div class="w-full bg-gray-200 rounded-full h-4 mb-4">
-    <div id="progress-bar" class="bg-green-600 h-4 rounded-full" style="width: 0%;"></div>
-  </div>
-  <p id="progress-text" class="text-sm text-gray-600 mb-6">Progress: 0%</p>
-</section> -->
-
-<!-- Tutorial Content -->
+<!-- 📘 Tutorial Content -->
 <section class="mt-4">
-  <div
-  class="bg-gray-50 bg-gradient-to-b from-white to-gray-100 dark:from-gray-900 dark:to-gray-800 p-3 text-gray-900 dark:text-gray-100"
->
-  <h1 id="tutorial-title" class="text-4xl font-bold mb-4"></h1>
+  <div class="bg-gray-50 bg-gradient-to-b from-white to-gray-100 dark:from-gray-900 dark:to-gray-800 p-3 text-gray-900 dark:text-gray-100">
+    <h1 id="tutorial-title" class="text-4xl font-bold mb-4"></h1>
 
-  <div id="tutorial-content" class="prose dark:prose-invert">
-    <div
-      class="dynamic-code quill-content"
-      id="dynamic-code-0"
-      contenteditable="false"
-      aria-live="polite"
-      aria-busy="true"
-    >
-      Loading...
+    <div id="tutorial-content" class="prose dark:prose-invert">
+      <div
+        class="dynamic-code quill-content"
+        id="dynamic-code-0"
+        contenteditable="false"
+        aria-live="polite"
+        aria-busy="true"
+      >
+        Loading...
+      </div>
     </div>
-  </div>
-    
+
     <hr class="border-t border-gray-300 dark:border-gray-700 mt-8 mb-6" />
-    
-    <!-- Navigation -->
+
+    <!-- 👉 Navigation -->
     <div class="mt-6 flex justify-end">
       <a id="next-subtopic-link" href="#" class="inline-block bg-green-600 text-white px-6 py-3 font-semibold shadow hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 rounded transition">
         Continue →
@@ -48,26 +38,61 @@
   </div>
 </section>
 
-<!-- Ad Placeholder Bottom -->
+<!-- 📢 Ad Placeholder Bottom -->
 <section class="mt-12">
   <div class="bg-gray-50 dark:bg-gray-800 border border-dashed border-gray-300 dark:border-gray-600 p-6 rounded-xl text-center">
     <p class="text-gray-400 dark:text-gray-500">[Ad Placeholder]</p>
   </div>
 </section>
 
-
-<!-- Insert Flask variables for use in JS -->
+<!-- 🔗 Inject Flask Data into Window -->
 <script>
   window.FLASK_DATA = {
     topicSlug: "{{ topic_slug }}",
-    subtopicSlug: "{{ subtopic_slug }}"
+    subtopicSlug: "{{ subtopic_slug }}",
+    subtopicId: {{ subtopic_id | default('null') | safe }}
   };
 </script>
 
-<!-- Load your module script -->
+<!-- 📘 Load Main Tutorial JS -->
 <script type="module" src="{{ url_for('static', filename='api/tutorial.js') }}"></script>
 
-<!-- Video Embed Scripts -->
+<!-- 🎥 Video Embeds -->
 <script src="{{ url_for('static', filename='js/video-embed.js') }}" defer></script>
 <script src="{{ url_for('static', filename='js/video-embedInit.js') }}" defer></script>
+
+<!-- 📊 Analytics: Session + View Tracking -->
+<script type="module">
+  import { trackSessionStart, trackSessionEnd } from '/static/api/analytics/session.js';
+  import { trackSubTopicView } from '/static/api/analytics/view.js';
+
+  // Start or resume the session
+  trackSessionStart();
+
+  const subtopicId = window.FLASK_DATA?.subtopicId;
+  const startTime = Date.now();
+
+  window.addEventListener('beforeunload', () => {
+    const timeSpent = Math.floor((Date.now() - startTime) / 1000);
+    const scrollDepth = Math.min(
+      100,
+      Math.round((window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100)
+    );
+
+    // Safely send subtopic view only if ID is present
+    if (subtopicId !== undefined && subtopicId !== null) {
+      trackSubTopicView(subtopicId, timeSpent, scrollDepth);
+    } else {
+      console.warn('⚠️ subtopicId missing – view tracking skipped.');
+    }
+
+    // Always track session end regardless of subtopic
+    trackSessionEnd(timeSpent);
+  });
+</script>
+
+
+<!-- 🛠️ Frontend Error Logging -->
+<script type="module" src="{{ url_for('static', filename='api/analytics/errors.js') }}"></script>
+
 {% endblock %}

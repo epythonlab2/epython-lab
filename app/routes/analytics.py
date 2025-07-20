@@ -1,0 +1,314 @@
+import logging
+from sqlalchemy import func, extract, distinct
+from datetime import datetime, timezone, timedelta
+from flask import Blueprint, request, jsonify, request
+from flask_jwt_extended import jwt_required
+from app.models.tutorial import SubTopic, Session, SubTopicView, SearchQuery, ErrorLog
+from app.extensions import db
+from user_agents import parse
+from datetime import datetime, date
+from app.utils.logging_utils import get_country_from_ip, get_client_ip
+
+
+logger = logging.getLogger(__name__)
+bp = Blueprint('analytics', __name__)
+
+
+@bp.route('/session/start', methods=['POST'])
+def start_session():
+    data = request.get_json() or {}
+    session_id = data.get('session_id')
+    if not session_id:
+        return jsonify({"error": "session_id is required"}), 400
+
+    user_agent_str = request.headers.get('User-Agent', '')
+    user_agent = parse(user_agent_str)
+
+    session = Session.query.filter_by(session_id=session_id).first()
+    if session:
+        return jsonify({"message": "Session already exists"}), 200
+
+    ip_addr = get_client_ip(request)
+    session = Session(
+        session_id=session_id,
+        ip_address=ip_addr,
+        browser=user_agent.browser.family,
+        os=user_agent.os.family,
+        device_type=data.get('device_type'),
+        country=get_country_from_ip(ip_addr),
+        started_at=datetime.now(timezone.utc)
+    )
+
+    db.session.add(session)
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        logger.error("Database error during session start", exc_info=True)
+        return jsonify({"error": "Failed to start session"}), 500
+
+    return jsonify({"message": "Session started"}), 201
+
+@bp.route('/analytics/session/end', methods=['POST'])
+def end_session():
+    data = request.get_json()
+    session_id = data.get('session_id')
+    time_spent = data.get('time_spent', 0)
+
+    if not session_id:
+        return jsonify({'error': 'Missing session_id'}), 400
+
+    session = Session.query.filter_by(session_uuid=session_id).first()
+    if not session:
+        return jsonify({'error': 'Session not found'}), 404
+
+    session.end_time = datetime.utcnow()
+    db.session.commit()
+
+    return jsonify({'status': 'session ended'})
+
+
+@bp.route('/subtopic/view', methods=['POST'])
+def record_subtopic_view():
+    """
+    Record a user's view on a subtopic.
+    Expected JSON:
+    {
+        "session_id": "string",
+        "subtopic_id": int,
+        "time_spent_seconds": float (optional),
+        "scroll_depth_percent": float (optional)
+    }
+    """
+    data = request.get_json() or {}
+
+    session_id = data.get('session_id')
+    subtopic_id = data.get('subtopic_id')
+
+    if not session_id or not subtopic_id:
+        return jsonify({"error": "session_id and subtopic_id are required"}), 400
+
+    session = Session.query.filter_by(session_id=session_id).first()
+    if not session:
+        return jsonify({"error": "Session not found"}), 404
+
+    view = SubTopicView(
+        subtopic_id=subtopic_id,
+        session_id=session.id,
+        viewed_at=datetime.now(timezone.utc),
+        time_spent_seconds=data.get('time_spent_seconds'),
+        scroll_depth_percent=data.get('scroll_depth_percent')
+    )
+
+    db.session.add(view)
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        logger.error("Database error recording subtopic view", exc_info=True)
+        return jsonify({"error": "Failed to record view"}), 500
+
+    return jsonify({"message": "Subtopic view recorded"}), 201
+
+
+@bp.route('/search', methods=['POST'])
+def record_search_query():
+    """
+    Record a user search query.
+    Expected JSON:
+    {
+        "session_id": "string" (optional),
+        "query_text": "string"
+    }
+    """
+    data = request.get_json() or {}
+    query_text = data.get('query_text')
+    if not query_text or not query_text.strip():
+        return jsonify({"error": "query_text is required"}), 400
+
+    session = None
+    session_id = data.get('session_id')
+    if session_id:
+        session = Session.query.filter_by(session_id=session_id).first()
+
+    search_query = SearchQuery(
+        query_text=query_text.strip(),
+        session_id=session.id if session else None,
+        searched_at=datetime.now(timezone.utc)
+    )
+
+    db.session.add(search_query)
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        logger.error("Database error recording search query", exc_info=True)
+        return jsonify({"error": "Failed to record search query"}), 500
+
+    return jsonify({"message": "Search query recorded"}), 201
+
+
+@bp.route('/error', methods=['POST'])
+def record_error_log():
+    """
+    Log an error encountered by the user.
+    Expected JSON:
+    {
+        "session_id": "string" (optional),
+        "error_message": "string",
+        "url": "string" (optional),
+        "stack_trace": "string" (optional),
+        "error_type": "string" (optional)
+    }
+    """
+    data = request.get_json() or {}
+    error_message = data.get('error_message')
+    if not error_message or not error_message.strip():
+        return jsonify({"error": "error_message is required"}), 400
+
+    session = None
+    session_id = data.get('session_id')
+    if session_id:
+        session = Session.query.filter_by(session_id=session_id).first()
+
+    error_log = ErrorLog(
+        error_message=error_message.strip(),
+        url=data.get('url'),
+        stack_trace=data.get('stack_trace'),
+        error_type=data.get('error_type'),
+        session_id=session.id if session else None,
+        logged_at=datetime.now(timezone.utc)
+    )
+
+    db.session.add(error_log)
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        logger.error("Database error recording error log", exc_info=True)
+        return jsonify({"error": "Failed to record error log"}), 500
+
+    return jsonify({"message": "Error log recorded"}), 201
+
+
+@bp.route("/metrics", methods=["GET"])
+@jwt_required()
+def get_summary_metrics():
+    today = date.today()
+
+    # Total sessions = proxy for users (unless you have a user model)
+    total_users = db.session.query(func.count(Session.id)).scalar()
+
+    # Subtopic views today
+    views_today = db.session.query(func.count(SubTopicView.id)) \
+        .filter(func.date(SubTopicView.viewed_at) == today).scalar()
+
+    # All subtopics = "Topic Contents"
+    total_topic_contents = db.session.query(func.count(SubTopic.id)).scalar()
+
+    # Placeholder blog post count (replace with actual model if exists)
+    total_blog_posts = 52  # <-- or query BlogPost table if available
+
+    return jsonify({
+        "users": total_users,
+        "views_today": views_today,
+        "topic_contents": total_topic_contents,
+        "blog_posts": total_blog_posts
+    })
+
+@bp.route('/engagement-summary', methods=['GET'])
+@jwt_required()
+def engagement_summary():
+    now = datetime.utcnow()
+    week_start = now - timedelta(days=7)
+
+    # 🧍 Unique Visitors This Week
+    unique_visitors = db.session.query(
+        func.count(distinct(Session.session_id))
+    ).filter(Session.started_at >= week_start).scalar()
+
+    # 🕐 Peak Activity Hour (e.g., 14 → 2PM)
+    peak_hour_data = db.session.query(
+        extract('hour', SubTopicView.viewed_at).label('hour'),
+        func.count().label('views')
+    ).filter(SubTopicView.viewed_at >= week_start) \
+     .group_by('hour') \
+     .order_by(func.count().desc()) \
+     .first()
+
+    peak_hour_range = (
+        f"{peak_hour_data.hour}:00 - {peak_hour_data.hour + 1}:00"
+        if peak_hour_data else "N/A"
+    )
+
+    # 📈 Highest Day of the Week (e.g., Friday)
+    peak_day_data = db.session.query(
+        extract('dow', SubTopicView.viewed_at).label('day_of_week'),
+        func.count().label('views')
+    ).filter(SubTopicView.viewed_at >= week_start) \
+     .group_by('day_of_week') \
+     .order_by(func.count().desc()) \
+     .first()
+
+    day_names = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+    peak_day = (
+        day_names[int(peak_day_data.day_of_week)] if peak_day_data else "N/A"
+    )
+
+    return jsonify({
+        "unique_visitors": unique_visitors,
+        "peak_hour_range": peak_hour_range,
+        "peak_day": peak_day
+    })
+@bp.route('/engagement-rate', methods=['GET'])
+@jwt_required()
+def engagement_rate():
+    week_ago = datetime.utcnow() - timedelta(days=7)
+
+    # Total unique visitors in the last week
+    total_visitors = db.session.query(
+        func.count(distinct(Session.session_id))
+    ).filter(Session.started_at >= week_ago).scalar()
+
+    # Unique visitors who viewed at least one subtopic
+    engaged_visitors = db.session.query(
+        func.count(distinct(SubTopicView.session_id))
+    ).filter(SubTopicView.viewed_at >= week_ago).scalar()
+
+    rate = (engaged_visitors / total_visitors * 100) if total_visitors else 0
+
+    return jsonify({
+        "engagement_rate_percent": round(rate, 1),
+        "engaged_visitors": engaged_visitors,
+        "total_visitors": total_visitors
+    })
+
+@bp.route('/page-views')
+@jwt_required()
+def get_page_views():
+    range_type = request.args.get('range', 'daily')  # daily, weekly, monthly
+    now = datetime.now(timezone.utc)
+
+    if range_type == 'daily':
+        since = now - timedelta(days=1)
+    elif range_type == 'weekly':
+        since = now - timedelta(weeks=1)
+    elif range_type == 'monthly':
+        since = now - timedelta(days=30)
+    else:
+        return jsonify({'error': 'Invalid range'}), 400
+
+    views = (
+        db.session.query(SubTopic.title, func.count(SubTopicView.id))
+        .join(SubTopic, SubTopic.id == SubTopicView.subtopic_id)
+        .filter(SubTopicView.viewed_at >= since)
+        .group_by(SubTopic.title)
+        .limit(10).all()
+    )
+
+    return jsonify({
+        "views": [
+            {"title": title, "views": count}
+            for title, count in views
+        ]
+    })
