@@ -1,7 +1,7 @@
-// static/api/auth_client.js
+// static/api/axios_client.js
 import axios from "https://cdn.jsdelivr.net/npm/axios@1.4.0/+esm";
 
-const auth_client = axios.create({
+const client = axios.create({
   baseURL: "/api/v1/",
   timeout: 10000,
   headers: {
@@ -11,7 +11,7 @@ const auth_client = axios.create({
 });
 
 // 🔐 Inject JWT from localStorage
-auth_client.interceptors.request.use((config) => {
+client.interceptors.request.use((config) => {
   const token = localStorage.getItem('jwt_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -20,4 +20,4 @@ auth_client.interceptors.request.use((config) => {
 });
 
 
-export default auth_client;
+export default client;

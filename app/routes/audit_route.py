@@ -1,7 +1,8 @@
 # app/routes/audit_route.py
 
 from flask import Blueprint, jsonify, current_app, request, abort
-from sqlalchemy import func, extract
+from flask_jwt_extended import jwt_required
+from sqlalchemy import func, extract, desc
 from datetime import datetime, timedelta
 from sqlalchemy.orm import aliased
 from app.models.log import AuditLog, SessionLog
@@ -17,6 +18,7 @@ bp = Blueprint("audit", __name__)
 # =======================
 
 @bp.route("/audit-summary")
+@jwt_required()
 def audit_summary():
     counts = db.session.query(
         AuditLog.action_type, func.count(AuditLog.id)
@@ -25,6 +27,7 @@ def audit_summary():
 
 
 @bp.route("/inactive-users")
+@jwt_required()
 def inactive_users():
     """
     Return paginated list of users who have had no audit log activity
@@ -106,6 +109,7 @@ def inactive_users():
 # =======================
 
 @bp.route("/login-trend")
+@jwt_required()
 def login_trend():
     today = datetime.utcnow()
     start = today - timedelta(days=29)
@@ -126,37 +130,27 @@ def login_trend():
     })
 
 
-@bp.route("/login-by-hour")
-def login_by_hour():
-    data = db.session.query(
-        extract('hour', SessionLog.login_time).label("hour"),
-        func.count()
-    ).group_by("hour").order_by("hour").all()
-
-    return jsonify([
-        {"hour": int(hour), "count": count} for hour, count in data
-    ])
-
-
 @bp.route("/weekly-activity")
+@jwt_required()
 def weekly_activity():
     today = datetime.utcnow().date()
     start = today - timedelta(weeks=5)
 
-    # Use strftime to get "Year-WeekNumber" format
-    data = db.session.query(
+    # Week number using %Y-%W (week starts on Monday, not ISO standard but works in SQLite)
+    weekly_counts = db.session.query(
         func.strftime('%Y-%W', AuditLog.timestamp).label('week'),
         func.count()
     ).filter(
         AuditLog.timestamp >= start
     ).group_by('week').order_by('week').all()
 
-    # Convert week string (e.g., "2025-29") into ISO-formatted Monday date (e.g., "2025-07-14")
     results = []
-    for week_str, count in data:
+
+    for week_str, count in weekly_counts:
         try:
-            # Add "-1" to represent Monday of that week
-            week_start = datetime.strptime(week_str + "-1", "%Y-%W-%w").date()
+            # Convert "2025-29" to ISO week start date (Monday of that week)
+            year, week = map(int, week_str.split("-"))
+            week_start = date.fromisocalendar(year, week, 1)  # Monday
             results.append({
                 "week": week_start.isoformat(),
                 "count": count
@@ -166,9 +160,35 @@ def weekly_activity():
 
     return jsonify(results)
 
+@bp.route("/frequent-actions")
+@jwt_required()
+def frequent_actions():
+    try:
+        data = db.session.query(
+            AuditLog.action_type.label("action"),
+            func.count(AuditLog.id).label("count")
+        ).group_by(AuditLog.action_type).order_by(db.desc("count")).all()
+
+        results = [
+            {"action": action or "Unknown", "count": count}
+            for action, count in data
+        ]
+
+        return jsonify(results)
+    except Exception as e:
+        current_app.logger.error(f"Error in /frequent-actions: {e}")
+        return jsonify({"error": "Internal Server Error"}), 500
+
+
 @bp.route("/geo-logins")
+@jwt_required()
 def geo_logins():
-    data = db.session.query(SessionLog.country, func.count()).group_by(SessionLog.country).all()
+    data = (
+        db.session.query(SessionLog.country, func.count())
+        .group_by(SessionLog.country)
+        .order_by(desc(func.count()))
+        .limit(10).all()
+    )
     return jsonify([
         {"country": country or "Unknown", "count": count} for country, count in data
     ])
@@ -179,6 +199,7 @@ def geo_logins():
 # =======================
 
 @bp.route("/device-analytics")
+@jwt_required()
 def device_analytics():
     def get_distribution(column):
         results = db.session.query(column, func.count()).group_by(column).all()
@@ -196,6 +217,7 @@ def device_analytics():
 # =======================
 
 @bp.route("/top-admins")
+@jwt_required()
 def top_admins():
     result = db.session.query(
         User.username,
@@ -203,7 +225,7 @@ def top_admins():
     ).join(AuditLog, User.id == AuditLog.actor_id
     ).group_by(User.username
     ).order_by(func.count(AuditLog.id).desc()
-    ).limit(5).all()
+    ).limit(10).all()
 
     return jsonify([
         {"username": username, "total": total}
@@ -212,6 +234,7 @@ def top_admins():
 
 
 @bp.route("/user-login-history/<int:user_id>")
+@jwt_required()
 def user_login_history(user_id):
     try:
         page = int(request.args.get('page', 1))
@@ -250,6 +273,7 @@ def user_login_history(user_id):
 # =======================
 
 @bp.route("/recent-audit-logs")
+@jwt_required()
 def recent_logs():
     logs = AuditLog.query.order_by(AuditLog.timestamp.desc()).limit(10).all()
 

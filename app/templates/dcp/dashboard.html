@@ -5,88 +5,195 @@
 
 {% block content %}
 
-<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
-  <div class="flex items-center bg-white p-4 rounded-xl shadow-md">
-    <div class="p-3 bg-blue-100 text-blue-600 rounded-full">
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
-           viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round"
-           d="M8 16l-4-4 4-4m8 8l4-4-4-4M12 4v16"></path></svg>
-    </div>
-    <div class="ml-4">
-      <h2 class="text-sm text-gray-500">Tutorials</h2>
-      <p class="text-2xl font-bold text-blue-600">128</p>
-    </div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 min-h-[calc(100vh-6rem)]">
+
+  <!-- Left Column -->
+  <div class="space-y-6 overflow-y-auto max-h-[calc(100vh-7rem)] pr-2">
+
+    <!-- Summary Metrics Card -->
+    <section class="bg-white p-6 rounded-2xl shadow-md">
+      <h3 class="text-lg font-semibold text-gray-800 mb-6">Summary Metrics</h3>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+        <!-- Users Card -->
+        <div class="flex items-center p-4 bg-gray-50 rounded-xl hover:shadow transition-shadow">
+          <div class="p-3 rounded-full bg-green-100 text-green-600">
+            <i data-lucide="users" class="w-6 h-6"></i>
+          </div>
+          <div class="ml-4">
+            <h4 class="text-sm font-medium text-gray-600 mb-1">Users</h4>
+            <p id="usersCount" class="text-2xl font-semibold text-green-700">Loading...</p>
+          </div>
+        </div>
+
+        <!-- Views Today -->
+        <div class="flex items-center p-4 bg-gray-50 rounded-xl hover:shadow transition-shadow">
+          <div class="p-3 rounded-full bg-purple-100 text-purple-600">
+            <i data-lucide="eye" class="w-6 h-6"></i>
+          </div>
+          <div class="ml-4">
+            <h4 class="text-sm font-medium text-gray-600 mb-1">Views Today</h4>
+            <p id="viewsTodayCount" class="text-2xl font-semibold text-purple-700">Loading...</p>
+          </div>
+        </div>
+
+        <!-- Topic Contents -->
+        <div class="flex items-center p-4 bg-gray-50 rounded-xl hover:shadow transition-shadow">
+          <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+            <i data-lucide="book-open" class="w-6 h-6"></i>
+          </div>
+          <div class="ml-4">
+            <h4 class="text-sm font-medium text-gray-600 mb-1">Topic Contents</h4>
+            <p id="topicContentsCount" class="text-2xl font-semibold text-blue-700">Loading...</p>
+          </div>
+        </div>
+
+        <!-- Blog Posts -->
+        <div class="flex items-center p-4 bg-gray-50 rounded-xl hover:shadow transition-shadow">
+          <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+            <i data-lucide="pen-square" class="w-6 h-6"></i>
+          </div>
+          <div class="ml-4">
+            <h4 class="text-sm font-medium text-gray-600 mb-1">Blog Posts</h4>
+            <p id="blogPostsCount" class="text-2xl font-semibold text-yellow-700">52</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <hr class="my-6 border-gray-200" />
+
+    <!-- Content Performance Card -->
+    <section>
+      <h3 class="text-lg font-semibold text-gray-800 mb-6">Content Performance</h3>
+
+      <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+
+        <!-- Top Content Views Chart -->
+        <div class="xl:col-span-2 bg-white p-6 rounded-2xl shadow-md">
+          <div class="flex justify-between items-center mb-4">
+            <h4 class="text-base font-semibold text-gray-800">Top Content Views</h4>
+            <select id="rangeSelector" class="bg-gray-50 border border-gray-300 text-sm text-gray-700 rounded px-3 py-2">
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+            </select>
+          </div>
+          <canvas id="viewsChart" height="150"></canvas>
+        </div>
+
+        <!-- Top 5 Topic Contents List -->
+        <div class="bg-white p-6 rounded-2xl shadow-md">
+          <h4 class="text-base font-semibold text-gray-800 mb-4">Top 5 Topic Contents</h4>
+          <ul id="topTopicContents" class="space-y-3"></ul>
+        </div>
+
+      </div>
+    </section>
+
   </div>
 
-  <div class="flex items-center bg-white p-4 rounded-xl shadow-md">
-    <div class="p-3 bg-yellow-100 text-yellow-600 rounded-full">
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
-           viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round"
-           d="M12 20l9-5-9-5-9 5 9 5z"></path></svg>
-    </div>
-    <div class="ml-4">
-      <h2 class="text-sm text-gray-500">Blog Posts</h2>
-      <p class="text-2xl font-bold text-yellow-600">52</p>
-    </div>
-  </div>
+  <!-- Right Column -->
+  <div class="space-y-6 overflow-y-auto max-h-[calc(100vh-7rem)] pr-2">
 
-  <div class="flex items-center bg-white p-4 rounded-xl shadow-md">
-    <div class="p-3 bg-green-100 text-green-600 rounded-full">
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
-           viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round"
-           d="M5.121 17.804A9.969 9.969 0 0112 15c2.21 0 4.244.714 5.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-    </div>
-    <div class="ml-4">
-      <h2 class="text-sm text-gray-500">Users</h2>
-      <p class="text-2xl font-bold text-green-600">347</p>
-    </div>
-  </div>
+    <!-- Recent Topics Table -->
+    <section class="bg-white p-6 rounded-2xl shadow-md">
+      <h3 class="text-lg font-semibold text-gray-800 mb-4">Recent Topics</h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left whitespace-nowrap">
+          <thead class="text-gray-500 border-b">
+            <tr>
+              <th class="py-2 px-3">Sub Topic</th>
+              <th class="py-2 px-3">Topic</th>
+              <th class="py-2 px-3">Date</th>
+              <th class="py-2 px-3">Status</th>
+            </tr>
+          </thead>
+          <tbody class="text-gray-700">
+            <tr class="border-b hover:bg-gray-50">
+              <td class="py-2 px-3">Python Basics</td>
+              <td class="py-2 px-3">Beginner</td>
+              <td class="py-2 px-3">2025-06-01</td>
+              <td class="py-2 px-3">
+                <span class="inline-block px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">Published</span>
+              </td>
+            </tr>
+            <tr class="hover:bg-gray-50">
+              <td class="py-2 px-3">Flask Forms</td>
+              <td class="py-2 px-3">Intermediate</td>
+              <td class="py-2 px-3">2025-05-29</td>
+              <td class="py-2 px-3">
+                <span class="inline-block px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-700 rounded-full">Draft</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
 
-  <div class="flex items-center bg-white p-4 rounded-xl shadow-md">
-    <div class="p-3 bg-purple-100 text-purple-600 rounded-full">
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
-           viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round"
-           d="M11 17a1 1 0 001 1h1.586a1 1 0 00.707-.293l4.707-4.707a1 1 0 000-1.414l-4.707-4.707A1 1 0 0013.586 7H12a1 1 0 00-1 1v9z"></path></svg>
-    </div>
-    <div class="ml-4">
-      <h2 class="text-sm text-gray-500">Views Today</h2>
-      <p class="text-2xl font-bold text-purple-600">4,032</p>
-    </div>
+    <!-- Engagement Summary -->
+    <section class="bg-white p-6 rounded-2xl shadow-md mt-6">
+      <h3 class="text-lg font-semibold text-gray-800 mb-6">Engagement Summary</h3>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+        <!-- Peak Activity -->
+        <div class="flex items-center p-4 bg-gray-50 rounded-xl hover:shadow transition-shadow">
+          <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+            <i data-lucide="clock" class="w-6 h-6"></i>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-600 mb-1">Peak Activity</p>
+            <p id="peakHourRange" class="text-lg font-semibold text-blue-700">Loading...</p>
+          </div>
+        </div>
+
+        <!-- Highest Day -->
+        <div class="flex items-center p-4 bg-gray-50 rounded-xl hover:shadow transition-shadow">
+          <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+            <i data-lucide="calendar-days" class="w-6 h-6"></i>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-600 mb-1">Highest Day</p>
+            <p id="peakDay" class="text-lg font-semibold text-yellow-700">Loading...</p>
+          </div>
+        </div>
+
+        <!-- Unique Visitors -->
+        <div class="flex items-center p-4 bg-gray-50 rounded-xl hover:shadow transition-shadow sm:col-span-2">
+          <div class="p-3 rounded-full bg-green-100 text-green-600">
+            <i data-lucide="user-check" class="w-6 h-6"></i>
+          </div>
+          <div class="ml-4">
+            <p class="text-sm font-medium text-gray-600 mb-1">Unique Visitors (This Week)</p>
+            <p id="uniqueVisitors" class="text-lg font-semibold text-green-700">Loading...</p>
+          </div>
+        </div>
+
+        <!-- Engagement Rate Bar -->
+        <div class="bg-gray-50 p-4 rounded-xl sm:col-span-2 hover:shadow transition-shadow">
+          <h4 class="flex items-center text-base font-semibold text-gray-800 mb-2">
+            <i data-lucide="rocket" class="w-5 h-5 mr-3 text-green-600"></i>
+            Engagement Rate
+          </h4>
+
+          <div class="relative pt-1">
+            <div class="overflow-hidden h-4 text-xs flex rounded bg-gray-200">
+              <div id="engagementBar" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-green-500 transition-all duration-500" style="width: 0; height: 100%;"></div>
+            </div>
+
+            <p id="engagementText" class="text-sm text-gray-600 mt-2">Loading...</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
   </div>
 </div>
 
-<div class="bg-white p-6 rounded-xl shadow-md">
-  <h3 class="text-lg font-semibold text-gray-700 mb-4">Recent Tutorials</h3>
-  <div class="overflow-x-auto">
-    <table class="w-full text-sm text-left whitespace-nowrap">
-      <thead class="text-gray-500 border-b">
-        <tr>
-          <th class="py-2 px-3">Title</th>
-          <th class="py-2 px-3">Category</th>
-          <th class="py-2 px-3">Date</th>
-          <th class="py-2 px-3">Status</th>
-        </tr>
-      </thead>
-      <tbody class="text-gray-700">
-        <tr class="border-b">
-          <td class="py-2 px-3">Python Basics</td>
-          <td class="py-2 px-3">Beginner</td>
-          <td class="py-2 px-3">2025-06-01</td>
-          <td class="py-2 px-3">
-            <span class="inline-block px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">Published</span>
-          </td>
-        </tr>
-        <tr>
-          <td class="py-2 px-3">Flask Forms</td>
-          <td class="py-2 px-3">Intermediate</td>
-          <td class="py-2 px-3">2025-05-29</td>
-          <td class="py-2 px-3">
-            <span class="inline-block px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-700 rounded-full">Draft</span>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</div>
+<script type="module" src="{{ url_for('static', filename='/api/analytics/dashboard.js') }}"></script>
 
 {% endblock %}

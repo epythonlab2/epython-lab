@@ -92,14 +92,14 @@ function renderBarChart(canvasId, labels, data) {
   });
 }
 
-async function loadActivityByHour() {
-  try {
-    const res = await client.get('/audit/activity-by-hour');
-    renderBarChart('activity-hour-chart', res.data.labels, res.data.data);
-  } catch (err) {
-    console.error('Activity by hour loading error:', err);
-  }
-}
+// async function loadActivityByHour() {
+//   try {
+//     const res = await client.get('/audit/activity-by-hour');
+//     renderBarChart('activity-hour-chart', res.data.labels, res.data.data);
+//   } catch (err) {
+//     console.error('Activity by hour loading error:', err);
+//   }
+// }
 
 async function loadWeeklyActivity() {
   try {
@@ -301,11 +301,24 @@ async function loadRecentLogs() {
   }
 }
 
+async function loadFrequentActions() {
+  try {
+    const res = await client.get('/audit/frequent-actions');
+    const labels = res.data.map(item => item.action);
+    const data = res.data.map(item => item.count);
+
+    renderBarChart('frequent-actions-chart', labels, data);
+  } catch (err) {
+    console.error('Frequent actions loading error:', err);
+  }
+}
+
 async function initDashboard() {
   await Promise.all([
     loadAuditSummary(),
     loadLoginTrend(),
-    loadActivityByHour(),
+    // loadActivityByHour(),
+    loadFrequentActions(),
     loadWeeklyActivity(),
     loadDeviceAnalytics(),
     loadTopAdmins(),
