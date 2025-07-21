@@ -55,3 +55,12 @@ export async function fetchEngagementRate() {
     return 0;
   }
 }
+
+export async function loadTrendData(range = '28d') {
+  try {
+    const res = await client.get(`/analytics/daily-trends?range=${range}`);
+    return res.data; // Use res.data directly
+  } catch (err) {
+    console.error("Failed to load trend data:", err);
+  }
+}

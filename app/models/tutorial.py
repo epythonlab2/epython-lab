@@ -111,6 +111,8 @@ class Session(db.Model):
     country = Column(String, nullable=True)
     started_at = Column(DateTime, default=datetime.utcnow)
     ended_at = Column(DateTime, nullable=True)
+    last_seen = Column(DateTime, nullable=True)
+
 
     tutorial_views = relationship("SubTopicView", back_populates="session")
     search_queries = relationship("SearchQuery", back_populates="session")

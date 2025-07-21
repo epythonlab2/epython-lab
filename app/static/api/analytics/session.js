@@ -28,14 +28,23 @@ export function trackSessionStart() {
   });
 }
 
-export function trackSessionEnd(timeSpent = 0) {
+// export function trackSessionEnd() {
+//   const sessionId = localStorage.getItem('session_id');
+//   if (!sessionId) return;
+//
+//   client.post('/analytics/session/end', {
+//     session_id: sessionId,
+//     // time_spent: timeSpent
+//   }).catch(err => {
+//     console.warn('Failed to end session:', err);
+//   });
+// }
+export function trackSessionEnd() {
   const sessionId = localStorage.getItem('session_id');
   if (!sessionId) return;
 
-  client.post('/analytics/session/end', {
-    session_id: sessionId,
-    time_spent: timeSpent
-  }).catch(err => {
-    console.warn('Failed to end session:', err);
-  });
+  const payload = JSON.stringify({ session_id: sessionId });
+  const blob = new Blob([payload], { type: 'application/json' });
+
+  navigator.sendBeacon('/api/v1/analytics/session/end', blob);
 }

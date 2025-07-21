@@ -1,5 +1,5 @@
 import logging
-from sqlalchemy import func, extract, distinct
+from sqlalchemy import func, extract, distinct, cast, Date, String
 from datetime import datetime, timezone, timedelta
 from flask import Blueprint, request, jsonify, request
 from flask_jwt_extended import jwt_required
@@ -7,7 +7,12 @@ from app.models.tutorial import SubTopic, Session, SubTopicView, SearchQuery, Er
 from app.extensions import db
 from user_agents import parse
 from datetime import datetime, date
-from app.utils.logging_utils import get_country_from_ip, get_client_ip
+from app.utils.logging_utils import (
+    get_country_from_ip,
+    format_last_login,
+    get_client_ip,
+    get_or_create_session
+    )
 
 
 logger = logging.getLogger(__name__)
@@ -24,37 +29,35 @@ def start_session():
     user_agent_str = request.headers.get('User-Agent', '')
     user_agent = parse(user_agent_str)
 
-    session = Session.query.filter_by(session_id=session_id).first()
-    if session:
-        return jsonify({"message": "Session already exists"}), 200
-
     ip_addr = get_client_ip(request)
-    session = Session(
-        session_id=session_id,
-        ip_address=ip_addr,
-        browser=user_agent.browser.family,
-        os=user_agent.os.family,
-        device_type=data.get('device_type'),
-        country=get_country_from_ip(ip_addr),
-        started_at=datetime.now(timezone.utc)
-    )
+    country = get_country_from_ip(ip_addr)
 
-    db.session.add(session)
-    try:
-        db.session.commit()
-    except Exception as e:
-        db.session.rollback()
-        logger.error("Database error during session start", exc_info=True)
-        return jsonify({"error": "Failed to start session"}), 500
+    env_data = {
+        'ip_address': ip_addr,
+        'browser': user_agent.browser.family,
+        'os': user_agent.os.family,
+        'device_type': data.get('device_type'),
+        'country': country,
+    }
 
-    return jsonify({"message": "Session started"}), 201
+    session, created = get_or_create_session(session_id, **env_data)
+    if session is None:
+        return jsonify({"error": "Failed to start or update session"}), 500
+
+    if created:
+        return jsonify({"message": "Session started"}), 201
+    else:
+        return jsonify({"message": "Session updated"}), 200
+
 
 @bp.route('/analytics/session/end', methods=['POST'])
 def end_session():
-    data = request.get_json()
-    session_id = data.get('session_id')
-    time_spent = data.get('time_spent', 0)
+    try:
+        data = request.get_json(force=True)  # force JSON parsing even if no content-type
+    except Exception as e:
+        return jsonify({'error': 'Invalid JSON'}), 400
 
+    session_id = data.get('session_id')
     if not session_id:
         return jsonify({'error': 'Missing session_id'}), 400
 
@@ -62,10 +65,11 @@ def end_session():
     if not session:
         return jsonify({'error': 'Session not found'}), 404
 
-    session.end_time = datetime.utcnow()
+    session.ended_at = datetime.utcnow()
     db.session.commit()
 
     return jsonify({'status': 'session ended'})
+
 
 
 @bp.route('/subtopic/view', methods=['POST'])
@@ -312,3 +316,43 @@ def get_page_views():
             for title, count in views
         ]
     })
+
+@bp.route('/daily-trends')
+@jwt_required()
+def daily_trends():
+    range_param = request.args.get('range', '28d')
+    range_days_map = {"7d": 7, "28d": 28, "90d": 90, "365d": 365}
+    days = range_days_map.get(range_param)
+    if days is None:
+        return jsonify({"error": "Invalid range value"}), 400
+
+    end_date = datetime.utcnow().date()
+    start_date = end_date - timedelta(days=days)
+
+    results = (
+    db.session.query(
+        SubTopicView.viewed_at.label('viewed_at'),
+        func.count(SubTopicView.id).label('views'),
+        func.coalesce(func.sum(SubTopicView.time_spent_seconds), 0).label('time_spent'),
+        func.count(func.distinct(SubTopicView.session_id)).label('unique_users')
+    )
+    .filter(SubTopicView.viewed_at >= start_date)
+    .group_by(func.date(SubTopicView.viewed_at))
+    .order_by(func.date(SubTopicView.viewed_at))
+    .all()
+    )
+
+    response = {"labels": [], "views": [], "time_spent": [], "users": []}
+    last_date = None
+    aggregate = {"views": 0, "time_spent": 0, "users": 0}
+
+    for row in results:
+        # Extract date part from datetime
+        day = row.viewed_at.date()
+        # Prepare the response as usual
+        response["labels"].append(format_last_login(day.strftime("%Y-%m-%d")))
+        response["views"].append(row.views)
+        response["time_spent"].append(row.time_spent)
+        response["users"].append(row.unique_users)
+
+    return jsonify(response)

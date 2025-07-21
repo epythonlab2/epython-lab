@@ -63,11 +63,11 @@
 
 <!-- 📊 Analytics: Session + View Tracking -->
 <script type="module">
-  import { trackSessionStart, trackSessionEnd } from '/static/api/analytics/session.js';
+  import { trackSessionEnd } from '/static/api/analytics/session.js';
   import { trackSubTopicView } from '/static/api/analytics/view.js';
 
-  // Start or resume the session
-  trackSessionStart();
+  // // Start or resume the session
+  // trackSessionStart();
 
   const subtopicId = window.FLASK_DATA?.subtopicId;
   const startTime = Date.now();
@@ -87,7 +87,7 @@
     }
 
     // Always track session end regardless of subtopic
-    trackSessionEnd(timeSpent);
+    trackSessionEnd();
   });
 </script>
 

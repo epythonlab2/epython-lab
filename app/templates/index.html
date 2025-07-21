@@ -14,7 +14,7 @@
 <section class="bg-green-100 dark:bg-gray-900 p-4 mt-8 rounded-2xl shadow-xl">
   <h2 class="text-3xl font-bold mb-4">Welcome to the Python Tutorial</h2>
   <p class="mb-4 text-lg">Master Python through an interactive, structured, and engaging learning experience.</p>
-  
+
   <div class="mt-6 space-y-4">
     <a id="start-button" href="/python/" class="inline-block bg-green-600 text-white px-6 py-3 rounded-lg font-semibold shadow hover:bg-green-700 transition">
       Start Learning Python
@@ -64,9 +64,14 @@
     <p class="text-gray-400 dark:text-gray-500">[Advertisement Placeholder]</p>
   </div>
 </section>
+<!-- 📊 Analytics: Session Track-->
+<script type="module">
+  import { trackSessionStart} from '/static/api/analytics/session.js';
+// Start or resume the session
+  trackSessionStart();
 
-<!-- Resume Button Logic -->
-<script>
+// Resume Button Logic
+
   document.addEventListener("DOMContentLoaded", () => {
     const lastVisited = JSON.parse(localStorage.getItem("lastVisited"));
     const resumeBtn = document.getElementById("resume-button");

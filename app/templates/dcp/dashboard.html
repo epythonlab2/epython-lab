@@ -75,7 +75,7 @@
         <div class="xl:col-span-2 bg-white p-6 rounded-2xl shadow-md">
           <div class="flex justify-between items-center mb-4">
             <h4 class="text-base font-semibold text-gray-800">Top Content Views</h4>
-            <select id="rangeSelector" class="bg-gray-50 border border-gray-300 text-sm text-gray-700 rounded px-3 py-2">
+            <select id="rangeSelector" class="w-40 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 transition">
               <option value="daily">Daily</option>
               <option value="weekly">Weekly</option>
               <option value="monthly">Monthly</option>
@@ -97,44 +97,28 @@
 
   <!-- Right Column -->
   <div class="space-y-6 overflow-y-auto max-h-[calc(100vh-7rem)] pr-2">
-
-    <!-- Recent Topics Table -->
+    <!-- Trend Chart with Range Selector -->
     <section class="bg-white p-6 rounded-2xl shadow-md">
-      <h3 class="text-lg font-semibold text-gray-800 mb-4">Recent Topics</h3>
-      <div class="overflow-x-auto">
-        <table class="w-full text-sm text-left whitespace-nowrap">
-          <thead class="text-gray-500 border-b">
-            <tr>
-              <th class="py-2 px-3">Sub Topic</th>
-              <th class="py-2 px-3">Topic</th>
-              <th class="py-2 px-3">Date</th>
-              <th class="py-2 px-3">Status</th>
-            </tr>
-          </thead>
-          <tbody class="text-gray-700">
-            <tr class="border-b hover:bg-gray-50">
-              <td class="py-2 px-3">Python Basics</td>
-              <td class="py-2 px-3">Beginner</td>
-              <td class="py-2 px-3">2025-06-01</td>
-              <td class="py-2 px-3">
-                <span class="inline-block px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">Published</span>
-              </td>
-            </tr>
-            <tr class="hover:bg-gray-50">
-              <td class="py-2 px-3">Flask Forms</td>
-              <td class="py-2 px-3">Intermediate</td>
-              <td class="py-2 px-3">2025-05-29</td>
-              <td class="py-2 px-3">
-                <span class="inline-block px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-700 rounded-full">Draft</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="flex justify-between items-center mb-4">
+        <h4 class="text-base font-semibold text-gray-800">Trend Analytics</h4>
+        <select id="trendRangeSelector" class="w-40 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 transition">
+          <option value="7d">Last 7 days</option>
+          <option value="28d" selected>Last 28 days</option>
+          <option value="90d">Last 90 days</option>
+          <option value="365d">Last 365 days</option>
+        </select>
+      </div>
+
+      <div class="h-64 relative">
+        <canvas id="trendChart" class="w-full h-full z-0">
+          <span class="text-sm text-gray-400">Loading trend data...</span>
+        </canvas>
       </div>
     </section>
 
+
     <!-- Engagement Summary -->
-    <section class="bg-white p-6 rounded-2xl shadow-md mt-6">
+    <section class="bg-white p-6 rounded-2xl shadow-md">
       <h3 class="text-lg font-semibold text-gray-800 mb-6">Engagement Summary</h3>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -190,6 +174,43 @@
 
       </div>
     </section>
+
+    <!-- Recent Topics Table -->
+    <section class="bg-white p-6 rounded-2xl shadow-md">
+      <h3 class="text-lg font-semibold text-gray-800 mb-4">Recent Topics</h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left whitespace-nowrap">
+          <thead class="text-gray-500 border-b">
+            <tr>
+              <th class="py-2 px-3">Sub Topic</th>
+              <th class="py-2 px-3">Topic</th>
+              <th class="py-2 px-3">Date</th>
+              <th class="py-2 px-3">Status</th>
+            </tr>
+          </thead>
+          <tbody class="text-gray-700">
+            <tr class="border-b hover:bg-gray-50">
+              <td class="py-2 px-3">Python Basics</td>
+              <td class="py-2 px-3">Beginner</td>
+              <td class="py-2 px-3">2025-06-01</td>
+              <td class="py-2 px-3">
+                <span class="inline-block px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">Published</span>
+              </td>
+            </tr>
+            <tr class="hover:bg-gray-50">
+              <td class="py-2 px-3">Flask Forms</td>
+              <td class="py-2 px-3">Intermediate</td>
+              <td class="py-2 px-3">2025-05-29</td>
+              <td class="py-2 px-3">
+                <span class="inline-block px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-700 rounded-full">Draft</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+
 
   </div>
 </div>
