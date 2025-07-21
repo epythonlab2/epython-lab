@@ -111,6 +111,8 @@ class Session(db.Model):
     country = Column(String, nullable=True)
     started_at = Column(DateTime, default=datetime.utcnow)
     ended_at = Column(DateTime, nullable=True)
+    last_seen = Column(DateTime, nullable=True)
+
 
     tutorial_views = relationship("SubTopicView", back_populates="session")
     search_queries = relationship("SearchQuery", back_populates="session")
@@ -127,7 +129,6 @@ class SubTopicView(db.Model):
     id = Column(Integer, primary_key=True)
     subtopic_id = Column(Integer, ForeignKey('sub_topic.id'), nullable=False)
     session_id = Column(Integer, ForeignKey('sessions.id'), nullable=False)
-
     viewed_at = Column(DateTime, default=datetime.utcnow)
     time_spent_seconds = Column(Float, nullable=True)
     scroll_depth_percent = Column(Float, nullable=True)

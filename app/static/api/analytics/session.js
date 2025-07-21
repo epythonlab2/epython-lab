@@ -28,14 +28,25 @@ export function trackSessionStart() {
   });
 }
 
-export function trackSessionEnd(timeSpent = 0) {
+export function trackSubTopicView(subtopicId, timeSpentSeconds, scrollDepthPercent) {
   const sessionId = localStorage.getItem('session_id');
-  if (!sessionId) return;
+  if (!sessionId) {
+    console.warn('No session_id found for subtopic view tracking.');
+    return;
+  }
 
-  client.post('/analytics/session/end', {
+  // Only send once per page load
+  if (window.hasTrackedSubtopicView) return;
+  window.hasTrackedSubtopicView = true;
+
+  // const viewEventId = generateUUID();
+
+  client.post('/analytics/subtopic/view', {
     session_id: sessionId,
-    time_spent: timeSpent
+    subtopic_id: subtopicId,
+    time_spent_seconds: timeSpentSeconds,
+    scroll_depth_percent: scrollDepthPercent,
   }).catch(err => {
-    console.warn('Failed to end session:', err);
+    console.warn('Failed to record subtopic view:', err);
   });
 }

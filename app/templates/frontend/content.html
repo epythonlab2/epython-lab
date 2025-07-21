@@ -63,34 +63,42 @@
 
 <!-- 📊 Analytics: Session + View Tracking -->
 <script type="module">
-  import { trackSessionStart, trackSessionEnd } from '/static/api/analytics/session.js';
-  import { trackSubTopicView } from '/static/api/analytics/view.js';
-
-  // Start or resume the session
-  trackSessionStart();
+  import { trackSubTopicView } from '/static/api/analytics/session.js';
 
   const subtopicId = window.FLASK_DATA?.subtopicId;
+  const sessionId = localStorage.getItem('session_id');
   const startTime = Date.now();
+  let scrollDepth = 0;
+  let hasTracked = false;
 
-  window.addEventListener('beforeunload', () => {
+  // Check scroll progress
+  function calculateScrollDepth() {
+    const scrolled = window.scrollY;
+    const documentHeight = document.body.scrollHeight - window.innerHeight;
+    return documentHeight > 0 ? Math.round((scrolled / documentHeight) * 100) : 0;
+  }
+
+  function maybeTrackView() {
+    if (hasTracked) return;
+
     const timeSpent = Math.floor((Date.now() - startTime) / 1000);
-    const scrollDepth = Math.min(
-      100,
-      Math.round((window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100)
-    );
+    scrollDepth = calculateScrollDepth();
 
-    // Safely send subtopic view only if ID is present
-    if (subtopicId !== undefined && subtopicId !== null) {
+    if (timeSpent >= 10 && scrollDepth >= 25 && subtopicId && sessionId) {
+      hasTracked = true;
       trackSubTopicView(subtopicId, timeSpent, scrollDepth);
-    } else {
-      console.warn('⚠️ subtopicId missing – view tracking skipped.');
     }
+  }
 
-    // Always track session end regardless of subtopic
-    trackSessionEnd(timeSpent);
-  });
+  // Poll every second until we qualify
+  const interval = setInterval(() => {
+    maybeTrackView();
+    if (hasTracked) clearInterval(interval);
+  }, 1000);
+
+  // Also update scroll depth on scroll
+  window.addEventListener('scroll', maybeTrackView);
 </script>
-
 
 <!-- 🛠️ Frontend Error Logging -->
 <script type="module" src="{{ url_for('static', filename='api/analytics/errors.js') }}"></script>

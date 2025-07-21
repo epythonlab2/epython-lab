@@ -1,9 +1,10 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from flask import request
 from dateutil import tz
 from user_agents import parse as parse_ua
 
 from app.models.log import SessionLog, AuditLog
+from app.models.tutorial import Session
 from app.extensions import db
 import geoip2.database
 
@@ -38,7 +39,7 @@ def get_device_type(user_agent_string: str) -> str:
         return 'Desktop'
     if any(keyword in ua.ua_string for keyword in tv_keywords):
         return 'TV'
-        
+
     return 'Other'
 
 
@@ -60,6 +61,35 @@ def get_client_ip(req) -> str:
         return req.headers.get('X-Forwarded-For').split(',')[0].strip()
     return req.remote_addr or '0.0.0.0'
 
+
+def get_or_create_session(session_id, **env_data):
+    session = Session.query.filter_by(session_id=session_id).first()
+    if session:
+        # Update environment data on revisit
+        session.last_seen = datetime.now(timezone.utc)
+        for key, value in env_data.items():
+            if value is not None:
+                setattr(session, key, value)
+        try:
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            logger.error("Database error updating session", exc_info=True)
+        return session, False  # False means session existed
+    else:
+        session = Session(
+            session_id=session_id,
+            started_at=datetime.now(timezone.utc),
+            **env_data
+        )
+        db.session.add(session)
+        try:
+            db.session.commit()
+            return session, True  # True means session created now
+        except Exception as e:
+            db.session.rollback()
+            logger.error("Database error creating session", exc_info=True)
+            return None, None
 
 def log_session(user):
     """Log a new user session."""
@@ -103,9 +133,19 @@ def log_audit_action(actor_id, action_type, target_user_id=None, description="")
 
 
 def format_last_login(dt_iso_str: str) -> str:
-    """Convert ISO timestamp to a human-readable localized format."""
+    """Convert ISO date or datetime string to a human-readable format."""
     if not dt_iso_str:
         return "Never logged in"
-    dt = datetime.fromisoformat(dt_iso_str)
-    local_dt = dt.astimezone(tz.tzlocal())
-    return local_dt.strftime("%b %d, %Y · %I:%M %p")
+
+    try:
+        if 'T' in dt_iso_str or ':' in dt_iso_str:
+            # ISO datetime with time
+            dt = datetime.fromisoformat(dt_iso_str)
+            local_dt = dt.astimezone(tz.tzlocal())
+            return local_dt.strftime("%b %d, %Y · %I:%M %p")
+        else:
+            # Date-only string
+            dt = datetime.fromisoformat(dt_iso_str)
+            return dt.strftime("%b %d, %Y")
+    except Exception:
+        return "Invalid date format"
