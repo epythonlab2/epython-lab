@@ -50,28 +50,6 @@ def start_session():
         return jsonify({"message": "Session updated"}), 200
 
 
-@bp.route('/analytics/session/end', methods=['POST'])
-def end_session():
-    try:
-        data = request.get_json(force=True)  # force JSON parsing even if no content-type
-    except Exception as e:
-        return jsonify({'error': 'Invalid JSON'}), 400
-
-    session_id = data.get('session_id')
-    if not session_id:
-        return jsonify({'error': 'Missing session_id'}), 400
-
-    session = Session.query.filter_by(session_uuid=session_id).first()
-    if not session:
-        return jsonify({'error': 'Session not found'}), 404
-
-    session.ended_at = datetime.utcnow()
-    db.session.commit()
-
-    return jsonify({'status': 'session ended'})
-
-
-
 @bp.route('/subtopic/view', methods=['POST'])
 def record_subtopic_view():
     """
@@ -96,12 +74,18 @@ def record_subtopic_view():
     if not session:
         return jsonify({"error": "Session not found"}), 404
 
+    time_spent = data.get('time_spent_seconds')
+    scroll_percent = data.get('scroll_depth_percent')
+
+    # if time_spent < 30 or scroll_percent < 25:
+    #     return jsonify({"message": "View ignored — not enough engagement"}), 200
+
     view = SubTopicView(
         subtopic_id=subtopic_id,
         session_id=session.id,
         viewed_at=datetime.now(timezone.utc),
-        time_spent_seconds=data.get('time_spent_seconds'),
-        scroll_depth_percent=data.get('scroll_depth_percent')
+        time_spent_seconds=time_spent,
+        scroll_depth_percent=scroll_percent
     )
 
     db.session.add(view)

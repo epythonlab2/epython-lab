@@ -59,63 +59,8 @@
             <p id="blogPostsCount" class="text-2xl font-semibold text-yellow-700">52</p>
           </div>
         </div>
-
       </div>
     </section>
-
-    <hr class="my-6 border-gray-200" />
-
-    <!-- Content Performance Card -->
-    <section>
-      <h3 class="text-lg font-semibold text-gray-800 mb-6">Content Performance</h3>
-
-      <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-
-        <!-- Top Content Views Chart -->
-        <div class="xl:col-span-2 bg-white p-6 rounded-2xl shadow-md">
-          <div class="flex justify-between items-center mb-4">
-            <h4 class="text-base font-semibold text-gray-800">Top Content Views</h4>
-            <select id="rangeSelector" class="w-40 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 transition">
-              <option value="daily">Daily</option>
-              <option value="weekly">Weekly</option>
-              <option value="monthly">Monthly</option>
-            </select>
-          </div>
-          <canvas id="viewsChart" height="150"></canvas>
-        </div>
-
-        <!-- Top 5 Topic Contents List -->
-        <div class="bg-white p-6 rounded-2xl shadow-md">
-          <h4 class="text-base font-semibold text-gray-800 mb-4">Top 5 Topic Contents</h4>
-          <ul id="topTopicContents" class="space-y-3"></ul>
-        </div>
-
-      </div>
-    </section>
-
-  </div>
-
-  <!-- Right Column -->
-  <div class="space-y-6 overflow-y-auto max-h-[calc(100vh-7rem)] pr-2">
-    <!-- Trend Chart with Range Selector -->
-    <section class="bg-white p-6 rounded-2xl shadow-md">
-      <div class="flex justify-between items-center mb-4">
-        <h4 class="text-base font-semibold text-gray-800">Trend Analytics</h4>
-        <select id="trendRangeSelector" class="w-40 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 transition">
-          <option value="7d">Last 7 days</option>
-          <option value="28d" selected>Last 28 days</option>
-          <option value="90d">Last 90 days</option>
-          <option value="365d">Last 365 days</option>
-        </select>
-      </div>
-
-      <div class="h-64 relative">
-        <canvas id="trendChart" class="w-full h-full z-0">
-          <span class="text-sm text-gray-400">Loading trend data...</span>
-        </canvas>
-      </div>
-    </section>
-
 
     <!-- Engagement Summary -->
     <section class="bg-white p-6 rounded-2xl shadow-md">
@@ -167,12 +112,51 @@
             <div class="overflow-hidden h-4 text-xs flex rounded bg-gray-200">
               <div id="engagementBar" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-green-500 transition-all duration-500" style="width: 0; height: 100%;"></div>
             </div>
-
             <p id="engagementText" class="text-sm text-gray-600 mt-2">Loading...</p>
           </div>
         </div>
-
       </div>
+    </section>
+
+  </div>
+
+  <!-- Right Column -->
+  <div class="space-y-6 overflow-y-auto max-h-[calc(100vh-7rem)] pr-2">
+    <!-- Trend Chart with Range Selector -->
+    <section class="bg-white p-6 rounded-2xl shadow-md">
+      <div class="flex justify-between items-center mb-4">
+        <h4 class="text-base font-semibold text-gray-800">Trend Analytics</h4>
+        <select id="trendRangeSelector" class="w-40 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 transition">
+          <option value="7d">Last 7 days</option>
+          <option value="28d" selected>Last 28 days</option>
+          <option value="90d">Last 90 days</option>
+          <option value="365d">Last 365 days</option>
+        </select>
+      </div>
+
+      <div class="h-64 relative">
+        <canvas id="trendChart" class="w-full h-full z-0">
+          <span class="text-sm text-gray-400">Loading trend data...</span>
+        </canvas>
+      </div>
+    </section>
+
+    <!-- Content Performance Card -->
+    <section class="bg-white p-6 rounded-2xl shadow-md">
+      <div class="flex justify-between items-center mb-4">
+        <h4 class="text-base font-semibold text-gray-800">Top Contents</h4>
+        <select id="rangeSelector" class="w-40 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 transition">
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+        </select>
+      </div>
+      <div class="h-64 relative">
+        <canvas id="viewsChart" class="w-full h-full z-0">
+          <span class="text-sm text-gray-400">Loading data...</span>
+        </canvas>
+      </div>
+
     </section>
 
     <!-- Recent Topics Table -->
@@ -209,8 +193,6 @@
         </table>
       </div>
     </section>
-
-
 
   </div>
 </div>

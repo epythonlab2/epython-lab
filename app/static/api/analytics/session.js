@@ -28,23 +28,25 @@ export function trackSessionStart() {
   });
 }
 
-// export function trackSessionEnd() {
-//   const sessionId = localStorage.getItem('session_id');
-//   if (!sessionId) return;
-//
-//   client.post('/analytics/session/end', {
-//     session_id: sessionId,
-//     // time_spent: timeSpent
-//   }).catch(err => {
-//     console.warn('Failed to end session:', err);
-//   });
-// }
-export function trackSessionEnd() {
+export function trackSubTopicView(subtopicId, timeSpentSeconds, scrollDepthPercent) {
   const sessionId = localStorage.getItem('session_id');
-  if (!sessionId) return;
+  if (!sessionId) {
+    console.warn('No session_id found for subtopic view tracking.');
+    return;
+  }
 
-  const payload = JSON.stringify({ session_id: sessionId });
-  const blob = new Blob([payload], { type: 'application/json' });
+  // Only send once per page load
+  if (window.hasTrackedSubtopicView) return;
+  window.hasTrackedSubtopicView = true;
 
-  navigator.sendBeacon('/api/v1/analytics/session/end', blob);
+  // const viewEventId = generateUUID();
+
+  client.post('/analytics/subtopic/view', {
+    session_id: sessionId,
+    subtopic_id: subtopicId,
+    time_spent_seconds: timeSpentSeconds,
+    scroll_depth_percent: scrollDepthPercent,
+  }).catch(err => {
+    console.warn('Failed to record subtopic view:', err);
+  });
 }

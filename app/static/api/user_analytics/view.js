@@ -1,20 +1,14 @@
 // analytics/view.js
 
+// analytics/view.js
+
 import client from '../axios_client.js';
 
-export function trackSubTopicView(subtopicId, timeSpentSeconds, scrollDepthPercent) {
-  const sessionId = localStorage.getItem('session_id');
-  if (!sessionId) {
-    console.warn('No session_id found for subtopic view tracking.');
-    return;
-  }
-
-  client.post('/analytics/subtopic/view', {
-    session_id: sessionId,
-    subtopic_id: subtopicId,
-    time_spent_seconds: timeSpentSeconds,
-    scroll_depth_percent: scrollDepthPercent
-  }).catch(err => {
-    console.warn('Failed to record subtopic view:', err);
+function generateUUID() {
+  // Simple UUID generator
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = (Math.random() * 16) | 0,
+          v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
   });
 }
