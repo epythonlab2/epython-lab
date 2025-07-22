@@ -1,5 +1,5 @@
 import logging
-from sqlalchemy import func, extract, distinct, cast, Date, String
+from sqlalchemy import func, extract, distinct, cast, Date, String, desc
 from datetime import datetime, timezone, timedelta
 from flask import Blueprint, request, jsonify, request
 from flask_jwt_extended import jwt_required
@@ -339,4 +339,38 @@ def daily_trends():
         response["time_spent"].append(row.time_spent)
         response["users"].append(row.unique_users)
 
+    return jsonify(response)
+
+@bp.route('/views/stats', methods=['GET'])
+def device_country_stats_progressive():
+    range_param = request.args.get('range', '28d').lower()
+    range_days_map = {"7d": 7, "28d": 28, "90d": 90, "365d": 365}
+    days = range_days_map.get(range_param)
+    if days is None:
+        return jsonify({"error": "Invalid range parameter"}), 400
+
+    end_date = datetime.utcnow().date()
+    start_date = end_date - timedelta(days=days)
+
+    def aggregate_by_field(field):
+        field_attr = getattr(Session, field)
+        results = (
+            db.session.query(
+                field_attr.label('key'),
+                func.count(SubTopicView.id).label('views')
+            )
+            .join(SubTopicView, SubTopicView.session_id == Session.id)
+            .group_by(field_attr)
+            .order_by(func.count(SubTopicView.id).desc())
+            .all()
+        )
+        print(f"{field} stats:", results)
+        return [{"key": k or "Unknown", "views": v} for k, v in results]
+        
+    response = {
+        "device_type": aggregate_by_field('device_type'),
+        "os": aggregate_by_field('os'),
+        "browser": aggregate_by_field('browser'),
+        "country": aggregate_by_field('country'),
+    }
     return jsonify(response)
