@@ -194,10 +194,12 @@ def get_summary_metrics():
     # All subtopics = "Topic Contents"
     total_topic_contents = db.session.query(func.count(SubTopic.id)).scalar()
 
-    # Placeholder blog post count (replace with actual model if exists)
-    # today_new_user = # Subtopic views today
+    # Query the number of user sessions that started today.
+    # This represents the count of "new users today" for analytics purposes.
+    # Note: Assumes each session corresponds to a unique user interaction.
     new_users_today = db.session.query(func.count(Session.id)) \
-        .filter(func.date(Session.started_at) == today).scalar()
+        .filter(func.date(Session.started_at) == today) \
+        .scalar()
 
     return jsonify({
         "users": total_users,
