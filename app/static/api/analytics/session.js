@@ -10,6 +10,31 @@ function generateUUID() {
   });
 }
 
+function getDeviceType() {
+  const ua = navigator.userAgent;
+
+  // Detect TVs
+  const isTV = /TV|SmartTV|AppleTV|GoogleTV|HbbTV|NetCast.TV|WebTV|Xbox|PlayStation/i.test(ua);
+  if (isTV) return 'Tv';
+
+  // Detect Mobile phones
+  const isMobile = /Mobi|Android.*Mobile|iPhone|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+  if (isMobile) return 'Mobile';
+
+  // Detect Tablets:
+  //  - iPad, iPadOS 13+ on desktop mode reports Mac, so check for 'Macintosh' + touch support (optional)
+  //  - Android tablets usually have 'Android' but NOT 'Mobile'
+  //  - Common tablet keywords
+  const isTablet = /Tablet|iPad|Nexus 7|Nexus 10|KFAPWI|Silk|PlayBook|Kindle|Touch/i.test(ua)
+    || (/Android/i.test(ua) && !/Mobile/i.test(ua)); // Android tablet heuristic
+
+  if (isTablet) return 'Tablet';
+
+  // Default desktop
+  return 'Pc';
+}
+
+
 export function trackSessionStart() {
   let sessionId = localStorage.getItem('session_id');
   if (!sessionId) {
@@ -17,7 +42,7 @@ export function trackSessionStart() {
     localStorage.setItem('session_id', sessionId);
   }
 
-  const deviceType = /Mobi|Android/i.test(navigator.userAgent) ? 'mobile' : 'desktop';
+  const deviceType = getDeviceType();
 
   client.post('/analytics/session/start', {
     session_id: sessionId,

@@ -221,9 +221,9 @@ async function renderEngagementSummary() {
 async function renderEngagementRate() {
   const rate = await fetchEngagementRate();
 
-  document.getElementById('engagementBar').style.width = rate + '%';
-  document.getElementById('engagementText').textContent =
-    `${rate}% of visitors engaged with at least one Topic Content`;
+  const textEl = document.getElementById('engagementBar');
+  textEl.style.width = rate + '%';
+  textEl.setAttribute('data-tooltip', `${rate}% of visitors interacted with at least one Topic Content`);
 }
 
 // Initialize everything on load
@@ -241,4 +241,34 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('trendRangeSelector').addEventListener('change', e => {
     loadAndRenderDailyTrend(e.target.value);
   });
+});
+
+// Tooltip for Engagement rate
+const tooltip = document.getElementById('tooltip');
+
+document.addEventListener('mouseover', e => {
+  const el = e.target.closest('.tooltip-trigger');
+  if (!el) return;
+
+  const text = el.getAttribute('data-tooltip');
+  if (!text) return;
+
+  tooltip.textContent = text;
+  const rect = el.getBoundingClientRect();
+  const tooltipRect = tooltip.getBoundingClientRect();
+
+  const top = rect.top + window.scrollY - tooltipRect.height - 8;
+  const left = rect.left + rect.width / 2 - tooltipRect.width / 2;
+
+  tooltip.style.top = `${top}px`;
+  tooltip.style.left = `${left}px`;
+  tooltip.classList.remove('invisible', 'opacity-0');
+  tooltip.classList.add('visible', 'opacity-100');
+});
+
+document.addEventListener('mouseout', e => {
+  if (e.target.closest('.tooltip-trigger')) {
+    tooltip.classList.add('invisible', 'opacity-0');
+    tooltip.classList.remove('visible', 'opacity-100');
+  }
 });
