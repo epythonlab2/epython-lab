@@ -194,14 +194,18 @@ def get_summary_metrics():
     # All subtopics = "Topic Contents"
     total_topic_contents = db.session.query(func.count(SubTopic.id)).scalar()
 
-    # Placeholder blog post count (replace with actual model if exists)
-    total_blog_posts = 52  # <-- or query BlogPost table if available
+    # Query the number of user sessions that started today.
+    # This represents the count of "new users today" for analytics purposes.
+    # Note: Assumes each session corresponds to a unique user interaction.
+    new_users_today = db.session.query(func.count(Session.id)) \
+        .filter(func.date(Session.started_at) == today) \
+        .scalar()
 
     return jsonify({
         "users": total_users,
         "views_today": views_today,
         "topic_contents": total_topic_contents,
-        "blog_posts": total_blog_posts
+        "new_users_today": new_users_today
     })
 
 @bp.route('/engagement-summary', methods=['GET'])
@@ -366,7 +370,7 @@ def device_country_stats_progressive():
         )
         print(f"{field} stats:", results)
         return [{"key": k or "Unknown", "views": v} for k, v in results]
-        
+
     response = {
         "device_type": aggregate_by_field('device_type'),
         "os": aggregate_by_field('os'),
