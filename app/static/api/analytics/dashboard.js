@@ -199,7 +199,7 @@ async function renderDashboardMetrics() {
   document.getElementById('usersCount').textContent = metrics.users.toString();
   document.getElementById('viewsTodayCount').textContent = metrics.viewsToday.toString();
   document.getElementById('topicContentsCount').textContent = metrics.topicContents.toString();
-  document.getElementById('blogPostsCount').textContent = metrics.blogPosts.toString();
+  document.getElementById('newUsersCount').textContent = metrics.newUsersCount.toString();
 }
 
 /**

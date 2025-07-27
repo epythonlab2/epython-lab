@@ -18,7 +18,7 @@ export async function fetchPageViews(range = 'daily') {
 
 /**
  * Fetch dashboard metrics summary.
- * @returns {Promise<Object>} Object containing user count, today's views, topic contents, and blog posts counts.
+ * @returns {Promise<Object>} Object containing user count, today's views, topic contents, and new users counts.
  */
 export async function fetchMetrics() {
   try {
@@ -29,7 +29,7 @@ export async function fetchMetrics() {
       users: data.users || 0,
       viewsToday: data.views_today || 0,
       topicContents: data.topic_contents || 0,
-      blogPosts: data.blog_posts || 0,
+      newUsersCount: data.new_users_today || 0,
     };
   } catch (error) {
     console.error('Failed to load dashboard metrics:', error);
@@ -37,7 +37,7 @@ export async function fetchMetrics() {
       users: 0,
       viewsToday: 0,
       topicContents: 0,
-      blogPosts: 0,
+      newUsersCount: 0,
     };
   }
 }
