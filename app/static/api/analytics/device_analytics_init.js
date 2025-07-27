@@ -61,7 +61,7 @@ const EngagementBreakdown = (() => {
     const totalViews = items.reduce((sum, i) => sum + i.views, 0);
     const color = getColor(category);
     const canvasId = `${category}-chart`;
-    const topItems = items.slice(0, 3); // Show top 3 items by default
+    const topItems = items.slice(0, 2); // Show top 3 items by default
 
     const labels = topItems.map(i => i.key);
     const dataValues = topItems.map(i => i.views);
@@ -71,13 +71,13 @@ const EngagementBreakdown = (() => {
     if (!card) {
       card = document.createElement('section');
       card.id = `${category}-card`;
-      card.className = "bg-white p-6 rounded-xl shadow hover:shadow-md transition-shadow";
+      card.className = "bg-white p-4 rounded-xl shadow hover:shadow-md transition-shadow";
       container.appendChild(card);
     }
 
     // Set card content with canvas
     card.innerHTML = `
-      <h3 class="text-lg font-semibold text-gray-800 mb-4 capitalize">${categoryTitleMap[category] || category}</h3>
+      <h3 class="text-sm font-medium text-gray-600 mb-1 capitalize">${categoryTitleMap[category] || category}</h3>
       <canvas id="${canvasId}" height="150"></canvas>
     `;
 
@@ -127,7 +127,7 @@ const EngagementBreakdown = (() => {
     });
 
     // Add "See All" button if more than 3 items
-    if (items.length > 3) {
+    if (items.length > 2) {
       const expandBtn = document.createElement('button');
       expandBtn.textContent = `See All (${items.length})`;
       expandBtn.className = 'expand-btn mt-4 text-indigo-600 hover:underline text-sm font-medium';

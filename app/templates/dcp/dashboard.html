@@ -5,10 +5,10 @@
 
 {% block content %}
 
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6 min-h-[calc(100vh-6rem)]">
+<div class="flex flex-col lg:flex-row gap-6 min-h-screen">
 
   <!-- LEFT COLUMN: Overview & Engagement -->
-  <div class="space-y-6 overflow-y-auto max-h-[calc(100vh-7rem)] pr-2">
+  <div class="flex-1 space-y-6 overflow-y-auto max-h-[calc(100vh-7rem)] pr-2">
 
     <!-- 1. Summary Metrics: The Big Picture -->
     <section class="bg-white p-4 rounded-2xl shadow-md">
@@ -104,16 +104,13 @@
             <div class="overflow-hidden h-4 text-xs flex rounded bg-gray-200">
               <div id="engagementBar" data-tooltip="" class="tooltip-trigger shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-green-500 transition-all duration-500" style="width: 0; height: 100%;"></div>
             </div>
-            <!-- <p id="engagementText"
-              class="tooltip-trigger mt-2 text-sm text-gray-700 cursor-pointer inline-block"
-              data-tooltip="Engagement rate is the % of users who interacted with any Topic Content">Loading...</p> -->
           </div>
         </div>
-        <!-- Engagement Rate Visual -->
+
         <!-- Global tooltip container -->
-      <div id="tooltip"
+        <div id="tooltip"
            class="invisible opacity-0 fixed z-50 px-3 py-2 text-sm text-white bg-black rounded shadow transition-opacity duration-200 pointer-events-none">
-      </div>
+        </div>
 
       </div>
     </section>
@@ -138,7 +135,7 @@
   </div>
 
   <!-- RIGHT COLUMN: Trends, Content, and Details -->
-  <div class="space-y-6 overflow-y-auto max-h-[calc(100vh-7rem)] pr-2">
+  <div class="flex-1 space-y-6 overflow-y-auto max-h-[calc(100vh-7rem)] pr-2">
 
     <!-- 4. Trend Analytics: Visualize Activity Over Time -->
     <section class="bg-white p-4 rounded-2xl shadow-md">
