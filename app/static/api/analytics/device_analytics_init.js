@@ -127,7 +127,7 @@ const EngagementBreakdown = (() => {
     });
 
     // Add "See All" button if more than 3 items
-    if (items.length > 1) {
+    if (items.length > 2) {
       const expandBtn = document.createElement('button');
       expandBtn.textContent = `See All (${items.length})`;
       expandBtn.className = 'expand-btn mt-4 text-indigo-600 hover:underline text-sm font-medium';
