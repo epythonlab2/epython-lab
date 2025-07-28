@@ -3,7 +3,7 @@ from sqlalchemy import func, extract, distinct, cast, Date, String, desc
 from datetime import datetime, timezone, timedelta
 from flask import Blueprint, request, jsonify, request
 from flask_jwt_extended import jwt_required
-from app.models.tutorial import SubTopic, Session, SubTopicView, SearchQuery, ErrorLog
+from app.models.tutorial import Topic, SubTopic, Session, SubTopicView, SearchQuery, ErrorLog
 from app.extensions import db
 from user_agents import parse
 from datetime import datetime, date
@@ -275,35 +275,53 @@ def engagement_rate():
         "total_visitors": total_visitors
     })
 
-@bp.route('/page-views')
+@bp.route('/top-contents')
 @jwt_required()
-def get_page_views():
-    range_type = request.args.get('range', 'daily')  # daily, weekly, monthly
+def get_content_views():
+    range_type = request.args.get('range', 'daily')  # daily, weekly, monthly, yearly
     now = datetime.now(timezone.utc)
 
+    # Determine time range
     if range_type == 'daily':
         since = now - timedelta(days=1)
     elif range_type == 'weekly':
         since = now - timedelta(weeks=1)
     elif range_type == 'monthly':
         since = now - timedelta(days=30)
+    elif range_type == 'yearly':
+        since = now - timedelta(days=365)
     else:
         return jsonify({'error': 'Invalid range'}), 400
 
+    # Query: join SubTopicView -> SubTopic -> Topic
     views = (
-        db.session.query(SubTopic.title, func.count(SubTopicView.id))
+        db.session.query(
+            SubTopic.title.label('subtopic_title'),
+            Topic.title.label('topic_title'),
+            func.count(SubTopicView.id).label('views')
+        )
         .join(SubTopic, SubTopic.id == SubTopicView.subtopic_id)
-        .filter(SubTopicView.viewed_at >= since)
-        .group_by(SubTopic.title)
-        .limit(10).all()
+        .join(Topic, Topic.id == SubTopic.topic_id)
+        .filter(
+            SubTopicView.viewed_at.isnot(None),  # Ensure timestamps are valid
+            SubTopicView.viewed_at >= since
+        )
+        .group_by(SubTopic.id, Topic.id)
+        .order_by(func.count(SubTopicView.id).desc())
+        .limit(20)
+        .all()
     )
 
     return jsonify({
         "views": [
-            {"title": title, "views": count}
-            for title, count in views
+            {
+                "subtopic_title": subtopic_title,
+                "topic_title": topic_title,
+                "views": views_count
+            }
+            for subtopic_title, topic_title, views_count in views
         ]
-    })
+    }), 200
 
 @bp.route('/daily-trends')
 @jwt_required()
