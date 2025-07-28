@@ -1,5 +1,5 @@
 import logging
-from sqlalchemy import func, extract, distinct, cast, Date, String, desc
+from sqlalchemy import func, extract, distinct, cast, Date, String, desc, case
 from datetime import datetime, timezone, timedelta
 from flask import Blueprint, request, jsonify, request
 from flask_jwt_extended import jwt_required
@@ -252,36 +252,51 @@ def engagement_summary():
         "peak_hour_range": peak_hour_range,
         "peak_day": peak_day
     })
+
+
 @bp.route('/engagement-rate', methods=['GET'])
 @jwt_required()
 def engagement_rate():
     week_ago = datetime.utcnow() - timedelta(days=7)
 
-    # Total unique visitors in the last week
+    # Step 1: Total unique sessions (recent)
     total_visitors = db.session.query(
-        func.count(distinct(Session.session_id))
-    ).filter(Session.started_at >= week_ago).scalar()
+        Session.id
+    ).filter(Session.started_at >= week_ago).all()
 
-    # Unique visitors who viewed at least one subtopic
+    total_ids = [s.id for s in total_visitors]
+
+    if not total_ids:
+        return jsonify({
+            "engagement_rate_percent": 0,
+            "engaged_visitors": 0,
+            "total_visitors": 0
+        })
+
+    # Step 2: How many of those sessions had at least one subtopic view?
     engaged_visitors = db.session.query(
         func.count(distinct(SubTopicView.session_id))
-    ).filter(SubTopicView.viewed_at >= week_ago).scalar()
+    ).filter(
+        SubTopicView.session_id.in_(total_ids),
+        SubTopicView.viewed_at >= week_ago
+    ).scalar()
 
-    rate = (engaged_visitors / total_visitors * 100) if total_visitors else 0
+    rate = (engaged_visitors / len(total_ids)) * 100
+    # print("Engaged:", engaged_visitors, "Total:", total_visitors)
 
     return jsonify({
         "engagement_rate_percent": round(rate, 1),
         "engaged_visitors": engaged_visitors,
-        "total_visitors": total_visitors
+        "total_visitors": len(total_ids)
     })
+
 
 @bp.route('/top-contents')
 @jwt_required()
 def get_content_views():
-    range_type = request.args.get('range', 'daily')  # daily, weekly, monthly, yearly
+    range_type = request.args.get('range', 'daily')
     now = datetime.now(timezone.utc)
 
-    # Determine time range
     if range_type == 'daily':
         since = now - timedelta(days=1)
     elif range_type == 'weekly':
@@ -293,35 +308,55 @@ def get_content_views():
     else:
         return jsonify({'error': 'Invalid range'}), 400
 
-    # Query: join SubTopicView -> SubTopic -> Topic
-    views = (
+    scroll_0_25 = func.count(case((SubTopicView.scroll_depth_percent.between(0, 25), 1), else_=None))
+    scroll_25_50 = func.count(case((SubTopicView.scroll_depth_percent.between(25, 50), 1), else_=None))
+    scroll_50_75 = func.count(case((SubTopicView.scroll_depth_percent.between(50, 75), 1), else_=None))
+    scroll_75_100 = func.count(case((SubTopicView.scroll_depth_percent.between(75, 100), 1), else_=None))
+
+    avg_time_spent = func.avg(SubTopicView.time_spent_seconds)
+
+    query = (
         db.session.query(
+            SubTopic.id.label('subtopic_id'),
             SubTopic.title.label('subtopic_title'),
             Topic.title.label('topic_title'),
-            func.count(SubTopicView.id).label('views')
+            func.count(SubTopicView.id).label('views'),
+            avg_time_spent.label('avg_time_spent_seconds'),
+            scroll_0_25.label('scroll_0_25'),
+            scroll_25_50.label('scroll_25_50'),
+            scroll_50_75.label('scroll_50_75'),
+            scroll_75_100.label('scroll_75_100'),
         )
         .join(SubTopic, SubTopic.id == SubTopicView.subtopic_id)
         .join(Topic, Topic.id == SubTopic.topic_id)
         .filter(
-            SubTopicView.viewed_at.isnot(None),  # Ensure timestamps are valid
+            SubTopicView.viewed_at.isnot(None),
             SubTopicView.viewed_at >= since
         )
         .group_by(SubTopic.id, Topic.id)
         .order_by(func.count(SubTopicView.id).desc())
         .limit(20)
-        .all()
     )
 
-    return jsonify({
-        "views": [
-            {
-                "subtopic_title": subtopic_title,
-                "topic_title": topic_title,
-                "views": views_count
+    results = query.all()
+
+    response = []
+    for row in results:
+        response.append({
+            "subtopic_title": row.subtopic_title,
+            "topic_title": row.topic_title,
+            "views": row.views,
+            "avg_time_spent_seconds": float(row.avg_time_spent_seconds or 0),
+            "scroll_distribution": {
+                "0-25%": row.scroll_0_25,
+                "25-50%": row.scroll_25_50,
+                "50-75%": row.scroll_50_75,
+                "75-100%": row.scroll_75_100,
             }
-            for subtopic_title, topic_title, views_count in views
-        ]
-    }), 200
+        })
+
+    return jsonify({"views": response}), 200
+
 
 @bp.route('/daily-trends')
 @jwt_required()
@@ -386,7 +421,7 @@ def device_country_stats_progressive():
             .order_by(func.count(SubTopicView.id).desc())
             .all()
         )
-        print(f"{field} stats:", results)
+        # print(f"{field} stats:", results)
         return [{"key": k or "Unknown", "views": v} for k, v in results]
 
     response = {

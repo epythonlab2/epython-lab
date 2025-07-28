@@ -62,19 +62,46 @@ async function renderTopContentChart(rawData) {
   tbody.innerHTML = '';
 
   data.forEach((row, index) => {
-    const tr = document.createElement('tr');
-    tr.className = 'border-b hover:bg-gray-50';
+  const scrollDist = row.scroll_distribution || {};
+  const scrollHtml = `
+    0–25%: ${scrollDist['0-25%'] || 0},\n
+    25–50%: ${scrollDist['25-50%'] || 0},\n
+    50–75%: ${scrollDist['50-75%'] || 0},\n
+    75–100%: ${scrollDist['75-100%'] || 0}
+  `;
 
-    tr.innerHTML = `
-      <td class="py-2 px-3 text-gray-500">${index + 1}</td>
-      <td class="py-2 px-3">${row.topic_title || '-'}</td>
-      <td class="py-2 px-3">${row.subtopic_title || row.title}</td>
-      <td class="py-2 px-3">${row.views}</td>
-    `;
-    tbody.appendChild(tr);
-  });
+  const tr = document.createElement('tr');
+  tr.className = 'border-b hover:bg-gray-50';
+
+  tr.innerHTML = `
+    <td class="py-2 px-3 text-gray-500">${index + 1}</td>
+    <td class="py-2 px-3">${row.topic_title || '-'}</td>
+    <td class="py-2 px-3">${row.subtopic_title || row.title}</td>
+    <td class="py-2 px-3">${row.views}</td>
+    <td class="py-2 px-3 whitespace-pre-line font-mono text-sm">${scrollHtml}</td>
+    <td class="py-2 px-3">
+      ${formatTime(row.avg_time_spent_seconds)}
+    </td>
+  `;
+
+  tbody.appendChild(tr);
+});
 }
 
+function formatTime(seconds) {
+  if (!seconds || isNaN(seconds)) return '0s';
+
+  const hrs = Math.floor(seconds / 3600);
+  const mins = Math.floor((seconds % 3600) / 60);
+  const secs = Math.floor(seconds % 60);
+
+  const parts = [];
+  if (hrs) parts.push(`${hrs}h`);
+  if (mins) parts.push(`${mins}m`);
+  if (secs || (!hrs && !mins)) parts.push(`${secs}s`);
+
+  return parts.join(' ');
+}
 
 
 
