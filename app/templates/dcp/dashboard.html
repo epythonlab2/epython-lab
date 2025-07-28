@@ -160,18 +160,45 @@
     <section class="bg-white p-4 rounded-2xl shadow-md">
       <div class="flex justify-between items-center mb-4">
         <h3 class="text-base font-semibold text-gray-800">Top Contents</h3>
-        <select id="rangeSelector" class="w-40 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 transition">
-          <option value="daily">Daily</option>
-          <option value="weekly">Weekly</option>
-          <option value="monthly">Monthly</option>
-        </select>
+        <div class="flex gap-2">
+          <select id="topContentSelector" class="w-40 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-200">
+            <option value="daily" selected>Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="yearly">Yearly</option>
+          </select>
+          <button id="seeAllBtn" class="text-sm text-indigo-600 hover:underline">See All</button>
+        </div>
       </div>
       <div class="h-64 relative">
-        <canvas id="viewsChart" class="w-full h-full z-0">
-          <span class="text-sm text-gray-400">Loading data...</span>
-        </canvas>
+        <canvas id="viewsChart" class="w-full h-full z-0"></canvas>
       </div>
     </section>
+
+    <!-- Modal Dialog -->
+    <div id="topContentsModal" class="fixed inset-0 bg-black bg-opacity-30 hidden z-50 flex items-center justify-center">
+      <div class="bg-white p-6 rounded-xl shadow-lg max-w-3xl w-full">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-semibold text-gray-800">Top Contents</h3>
+          <button id="closeTopModalBtn" class="text-gray-400 hover:text-gray-600 text-2xl font-bold leading-none">&times;</button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm text-left whitespace-nowrap">
+            <thead class="text-gray-500 border-b">
+              <tr>
+                  <th class="py-2 px-3">#</th>
+                <th class="py-2 px-3">Topic</th>
+                <th class="py-2 px-3">Sub Topic</th>
+                <th class="py-2 px-3">Views</th>
+              </tr>
+            </thead>
+            <tbody id="topContentsTable" class="text-gray-700"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+
 
     <!-- 6. Recent Topics: Deep Dive Into Content Status -->
     <section class="bg-white p-4 rounded-2xl shadow-md">
@@ -213,7 +240,7 @@
 </div>
 
 <!-- Engagement Breakdown Modal -->
-<div id="breakdownModal" class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center hidden">
+<div id="deviceViewModal" class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center hidden">
   <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-4xl mx-auto">
     <div class="flex justify-between items-center mb-4">
       <h2 id="modalTitle" class="text-lg font-semibold text-gray-800">Details</h2>

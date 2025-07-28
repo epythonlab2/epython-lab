@@ -6,12 +6,12 @@ import client from '../axios_client.js';
  * @param {string} range - Time range for data ('daily', '7d', '28d', etc.)
  * @returns {Promise<Array>} Array of page view records or empty array on failure.
  */
-export async function fetchPageViews(range = 'daily') {
+export async function fetchTopContentViews(range = 'daily') {
   try {
-    const response = await client.get(`/analytics/page-views?range=${range}`);
+    const response = await client.get(`/analytics/top-contents?range=${range}`);
     return response.data.views || [];
   } catch (error) {
-    console.error('Failed to load page views:', error);
+    console.error('Failed to load top contents:', error);
     return [];
   }
 }

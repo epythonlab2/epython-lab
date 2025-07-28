@@ -1,27 +1,31 @@
 import {
-  fetchPageViews,
+  fetchTopContentViews,
   fetchMetrics,
   fetchEngagementSummary,
   fetchEngagementRate,
   loadTrendData
 } from './engagement_api.js';
 
-const ctx = document.getElementById('viewsChart').getContext('2d');
+const ctx = document.getElementById('viewsChart')?.getContext('2d');
 let chart;
-let trendChart;  // Global trend chart instance
+let trendChart;  // Optional: for another chart elsewhere
 
 /**
- * Render the page views bar chart
+ * Render the Top Content views bar chart (top 3)
  */
-function renderChart(data) {
+async function renderTopContentChart(rawData) {
+  if (!ctx) return;
+
+  const data = rawData.slice(0, 3); // Show only top 3
+
   if (chart) chart.destroy();
 
   chart = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: data.map(item => item.title),
+      labels: data.map(item => item.subtopic_title),
       datasets: [{
-        label: 'Page Views',
+        label: 'Top Content Views',
         data: data.map(item => item.views),
         backgroundColor: '#10b981',
         borderRadius: 6,
@@ -48,14 +52,39 @@ function renderChart(data) {
       }
     }
   });
+
+  // Optional: render table if needed
+  renderTopContentTable(data);
 }
+
+ function renderTopContentTable(data) {
+  const tbody = document.getElementById('topContentsTable');
+  tbody.innerHTML = '';
+
+  data.forEach((row, index) => {
+    const tr = document.createElement('tr');
+    tr.className = 'border-b hover:bg-gray-50';
+
+    tr.innerHTML = `
+      <td class="py-2 px-3 text-gray-500">${index + 1}</td>
+      <td class="py-2 px-3">${row.topic_title || '-'}</td>
+      <td class="py-2 px-3">${row.subtopic_title || row.title}</td>
+      <td class="py-2 px-3">${row.views}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+
+
+
 
 /**
  * Fetch and render chart data based on range selector
  */
-async function loadAndRenderPageViews(range = 'daily') {
-  const data = await fetchPageViews(range);
-  renderChart(data);
+async function loadAndRenderTopContentViews(range = 'daily') {
+  const data = await fetchTopContentViews(range);
+  renderTopContentChart(data);
 }
 
 /**
@@ -228,14 +257,18 @@ async function renderEngagementRate() {
 
 // Initialize everything on load
 document.addEventListener('DOMContentLoaded', () => {
-  loadAndRenderPageViews();  // default 'daily'
+  loadAndRenderTopContentViews();  // default 'daily'
   renderDashboardMetrics();
   renderEngagementSummary();
   renderEngagementRate();
   loadAndRenderDailyTrend('28d'); // default range
 
-  document.getElementById('rangeSelector').addEventListener('change', e => {
-    loadAndRenderPageViews(e.target.value);
+  document.getElementById('topContentSelector').addEventListener('change', e => {
+    loadAndRenderTopContentViews(e.target.value);
+  });
+
+  document.getElementById('topContentSelector').addEventListener('change', e => {
+    loadAndRenderTopContentViews(e.target.value);
   });
 
   document.getElementById('trendRangeSelector').addEventListener('change', e => {
@@ -243,6 +276,13 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
+// Top Content Table Modal toggle
+document.getElementById('seeAllBtn').addEventListener('click', () => {
+  document.getElementById('topContentsModal').classList.remove('hidden');
+});
+document.getElementById('closeTopModalBtn').addEventListener('click', () => {
+  document.getElementById('topContentsModal').classList.add('hidden');
+});
 // Tooltip for Engagement rate
 const tooltip = document.getElementById('tooltip');
 

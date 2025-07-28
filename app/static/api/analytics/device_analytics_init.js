@@ -27,7 +27,7 @@ const EngagementBreakdown = (() => {
 
   // Show full list in a modal when "See All" is clicked
   function expandList(category, items, total) {
-    const modal = document.getElementById('breakdownModal');
+    const modal = document.getElementById('deviceViewModal');
     const modalTitle = document.getElementById('modalTitle');
     const modalList = document.getElementById('modalList');
 
@@ -127,7 +127,7 @@ const EngagementBreakdown = (() => {
     });
 
     // Add "See All" button if more than 3 items
-    if (items.length > 2) {
+    if (items.length > 1) {
       const expandBtn = document.createElement('button');
       expandBtn.textContent = `See All (${items.length})`;
       expandBtn.className = 'expand-btn mt-4 text-indigo-600 hover:underline text-sm font-medium';
@@ -207,7 +207,7 @@ const EngagementBreakdown = (() => {
 
   // Setup modal close handlers
   function initModalHandlers() {
-    const modal = document.getElementById('breakdownModal');
+    const modal = document.getElementById('deviceViewModal');
     if (!modal) return;
 
     const closeBtn = document.getElementById('closeModalBtn');
@@ -216,7 +216,7 @@ const EngagementBreakdown = (() => {
     }
 
     modal.addEventListener('click', (e) => {
-      if (e.target.id === 'breakdownModal') {
+      if (e.target.id === 'deviceViewModal') {
         modal.classList.add('hidden');
       }
     });
