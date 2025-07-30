@@ -1,19 +1,219 @@
-<header class="bg-gray-900 md:bg-white text-white md:text-gray-700 shadow-md px-6 py-4 flex justify-between items-center border-b border-gray-800 md:border-gray-200">
-  
+<!-- Header -->
+<header
+  class="bg-gray-900 md:bg-white text-white md:text-gray-700 shadow-md px-6 py-4 flex justify-between items-center border-b border-gray-800 md:border-gray-200 relative z-40"
+>
   <!-- Mobile Hamburger -->
-  <button id="mobile-menu-button" class="md:hidden text-gray-300 md:text-gray-600 focus:outline-none">
+  <button
+    id="mobile-menu-button"
+    class="md:hidden text-gray-300 md:text-gray-600 focus:outline-none"
+  >
     <i data-lucide="menu" class="w-6 h-6"></i>
   </button>
 
   <!-- Page Title -->
-  <h1 class="text-xl font-semibold">
-    {% block header_title %}Dashboard{% endblock %}
-  </h1>
+  <h1 class="text-xl font-semibold">{% block header_title %}Dashboard{% endblock %}</h1>
 
-  <!-- Admin Profile -->
-  <div class="flex items-center space-x-4">
-    <span class="text-sm text-gray-300 md:text-gray-500">Admin</span>
-    <img src="https://i.pravatar.cc/32" alt="Avatar"
-         class="w-8 h-8 rounded-full border border-gray-700 md:border-gray-200">
-  </div>
+  <!-- Admin Profile Button -->
+  <button
+    id="profileButton"
+    aria-expanded="false"
+    aria-controls="profileSideNav"
+    class="flex items-center gap-2 focus:outline-none text-sm text-gray-300 md:text-gray-600 relative z-50"
+  >
+    <span>Admin</span>
+    <img
+      src="https://i.pravatar.cc/32"
+      alt="Avatar"
+      class="w-8 h-8 rounded-full border border-gray-700 md:border-gray-300"
+    />
+    <i data-lucide="chevron-left" class="w-4 h-4 text-gray-400"></i>
+  </button>
 </header>
+
+<!-- Side Navigation Panel -->
+<!-- Profile Side Navigation -->
+<div
+  id="profileSideNav"
+  tabindex="-1"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="profileSideNavLabel"
+  class="fixed top-0 right-0 h-full w-72 max-w-xs bg-white dark:bg-gray-900
+         shadow-xl border-l border-gray-200 dark:border-gray-800
+         transform translate-x-full opacity-0 invisible pointer-events-none
+         transition-all duration-300 ease-in-out z-50 overflow-y-auto rounded-l-2xl"
+  style="max-width: 18rem;"
+>
+  <div class="p-6 flex flex-col h-full">
+    <!-- Close Button -->
+    <button
+      id="closeProfileSideNav"
+      aria-label="Close profile panel"
+      class="self-end mb-6 text-gray-400 hover:text-gray-700 dark:hover:text-white transition"
+    >
+      <i data-lucide="x" class="w-6 h-6"></i>
+    </button>
+
+    <!-- Profile Info -->
+    <div class="flex items-center gap-4 mb-8">
+      <img
+        src="https://i.pravatar.cc/60"
+        alt="Admin"
+        class="w-14 h-14 rounded-full border border-gray-300 dark:border-gray-600 shadow"
+      />
+      <div>
+        <p class="text-lg font-semibold text-gray-900 dark:text-white">Admin</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400">admin@example.com</p>
+      </div>
+    </div>
+
+    <hr class="border-gray-300 dark:border-gray-700 mb-6" />
+
+    <!-- Action Buttons -->
+    <button
+      onclick="handleNavClick(openProfileModal)"
+      class="flex items-center gap-3 px-4 py-3 mb-3 text-gray-700 dark:text-gray-200 hover:bg-gray-200/40 dark:hover:bg-gray-700 rounded-xl transition"
+    >
+      <i data-lucide="user" class="w-5 h-5 text-gray-500 dark:text-gray-300"></i>
+      <span>Edit Profile</span>
+    </button>
+
+    <!-- Logout -->
+    <a href="#"
+      class="logout-btn flex items-center gap-3 px-4 py-3 mt-auto text-red-600 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900 rounded-xl transition"
+    >
+      <i data-lucide="log-out" class="w-5 h-5"></i>
+      <span>Logout</span>
+    </a>
+  </div>
+</div>
+
+<!-- Side Nav Backdrop -->
+<div
+  id="profileBackdrop"
+  class="fixed inset-0 bg-transparent opacity-0 invisible pointer-events-none transition-opacity duration-300 z-40"
+></div>
+
+<!-- Edit Profile Modal Backdrop -->
+<div
+  id="editProfileModalBackdrop"
+  class="fixed inset-0 backdrop-blur-sm opacity-0 invisible pointer-events-none transition-opacity duration-300 z-[60]"
+></div>
+
+<!-- Edit Profile Modal -->
+<div
+  id="editProfileModal"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="editProfileModalTitle"
+  tabindex="-1"
+  class="fixed inset-0 flex opacity-0 bg-black bg-opacity-50 items-center justify-center p-4 invisible pointer-events-none transition-all duration-300 ease-out z-[70]
+  shadow-xl border-l border-gray-200 dark:border-gray-800
+  transform translate-x-full opacity-0 invisible pointer-events-none
+  transition-all duration-300 ease-in-out z-50 overflow-y-auto rounded-l-2xl"
+>
+
+<div class="bg-white text-gray-900 rounded-lg p-6 w-full max-w-md shadow-lg">
+  <h3 id="editProfileModalTitle" class="text-xl font-semibold mb-4">
+    Edit Profile
+  </h3>
+
+  <form id="editProfileForm" novalidate class="space-y-6">
+  <!-- Full Name -->
+  <div>
+    <label for="profileFullName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+      Full Name
+    </label>
+    <input
+      type="text"
+      id="profileFullName"
+      name="profileFullName"
+      placeholder="John Doe"
+      required
+      aria-label="Full name"
+      class="w-full px-4 py-3 text-sm rounded-lg border border-gray-300 bg-white text-gray-900
+             focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+    />
+  </div>
+
+  <!-- Email -->
+  <div>
+    <label for="profileEmail" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+      Email
+    </label>
+    <input
+      type="email"
+      id="profileEmail"
+      name="profileEmail"
+      placeholder="john.doe@example.com"
+      required
+      aria-label="Email"
+      class="w-full px-4 py-3 text-sm rounded-lg border border-gray-300 bg-white text-gray-900
+             focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+    />
+  </div>
+
+  <!-- Password -->
+  <div>
+    <label for="profilePassword" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+      Password
+    </label>
+    <input
+      type="password"
+      id="profilePassword"
+      name="profilePassword"
+      placeholder="********"
+      aria-label="Password"
+      class="w-full px-4 py-3 text-sm rounded-lg border border-gray-300 bg-white text-gray-900
+             focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+    />
+  </div>
+
+  <!-- Confirm Password -->
+  <div>
+    <label for="confirmPassword" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+      Confirm Password
+    </label>
+    <input
+      type="password"
+      id="confirmPassword"
+      name="confirmPassword"
+      placeholder="********"
+      aria-label="Confirm password"
+      class="w-full px-4 py-3 text-sm rounded-lg border border-gray-300 bg-white text-gray-900
+             focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+    />
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="flex justify-end gap-4 pt-4 mr-12">
+    <button
+      type="button"
+      id="cancelEditProfile"
+      class="px-5 py-3 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold transition"
+      aria-label="Cancel editing"
+    >
+      Cancel
+    </button>
+    <button
+      type="submit"
+      id="saveProfileBtn"
+      class="px-5 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
+      aria-label="Save changes"
+      disabled
+    >
+      Save
+    </button>
+  </div>
+</form>
+
+</div>
+</div>
+
+
+
+<!-- <script type="module" src="{{ url_for('static', filename='/api/logout.js') }}"></script> -->
+<script type="module" src="{{url_for('static', filename='/api/profile/profilePanel.js')}}"></script>
+
+<!-- Log out JS Module -->
+<script type="module" src="{{ url_for('static', filename='/api/logout.js') }}"></script>

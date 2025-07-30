@@ -295,10 +295,11 @@ def engagement_rate():
 @jwt_required()
 def get_content_views():
     range_type = request.args.get('range', 'daily')
-    now = datetime.now(timezone.utc)
+    now = datetime.utcnow()  # naive UTC datetime
 
     if range_type == 'daily':
         since = now - timedelta(days=1)
+        # print(since)
     elif range_type == 'weekly':
         since = now - timedelta(weeks=1)
     elif range_type == 'monthly':
